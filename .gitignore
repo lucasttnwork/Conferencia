@@ -1,3 +1,15 @@
+node_modules/
+.next/
+.turbo/
+dist/
+build/
+.DS_Store
+.env
+.env.*
+!.env.example
+!.env.dashboard.example
+.vercel/
+*.log
 # Dependencies
 node_modules/
 npm-debug.log*
