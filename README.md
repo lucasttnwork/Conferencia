@@ -167,6 +167,7 @@ Modifique queries no Supabase para processar apenas cards específicos.
 
 ## 📄 Licença
 
+<<<<<<< HEAD
 MIT License - veja o arquivo LICENSE para detalhes. 
 
 ## 🌐 Deploy (Hostinger / VPS genérica)
@@ -199,3 +200,6 @@ Passos:
 Notas:
 - O servidor customizado `server.js` escuta em `0.0.0.0:${PORT}`.
 - Em Hostinger, crie uma aplicação Node apontando para `server.js` e configure as variáveis no painel.
+=======
+MIT License - veja o arquivo LICENSE para detalhes. 
+>>>>>>> 9faaeadc2d8cb04ceb8537caaf5c55b02cd64a6a
