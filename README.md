@@ -1,205 +1,115 @@
-# 🧱 Trello → Supabase Sync
+### Dashboard de Atos Notariais (Next.js + Supabase)
 
-Sincronização completa de dados do Trello para Supabase com parsing inteligente de descrições padronizadas.
+Este projeto é um dashboard em Next.js 14 que consome dados de views no Supabase para apresentar estatísticas em tempo real sobre cards/listas. A aplicação oferece visão geral, distribuição por tipos de ato, insights rápidos e tabelas (pivot e detalhada) por lista.
 
-## 📋 Pré-requisitos
+### Principais links
+- **Produção (Railway)**: [conferencia-production-e880.up.railway.app](https://conferencia-production-e880.up.railway.app)
 
-1. **Node.js** (versão 16+)
-2. **Acesso ao Supabase** (Service Role Key)
-3. **Acesso ao Trello** (API Key + Token)
-4. **Board ID do Trello** para sincronizar
+### Arquitetura
+- **Frontend/SSR**: Next.js App Router (`app/`), TailwindCSS, componentes React.
+- **API interna**: `GET /api/dashboard` em `app/api/dashboard/route.ts` agrega dados vindos do Supabase REST.
+- **Dados**: Views no Supabase expostas via REST (`/rest/v1`), autenticadas com `SUPABASE_ANON_KEY`.
 
-## 🚀 Setup Inicial
+### Requisitos
+- Node.js 18+ (recomendado LTS)
+- Conta e projeto no Supabase com as views do arquivo `dashboard_view.sql` criadas
 
-### 1. Instalar dependências
+### Variáveis de ambiente
+Crie um arquivo `.env` na raiz do projeto (`Conferencia/.env`) baseado em `env.dashboard.example`:
+
+```bash
+SUPABASE_URL=seu_supabase_url
+SUPABASE_ANON_KEY=sua_chave_anon_do_supabase
+
+# Opcional (exposição no client, se necessário)
+NEXT_PUBLIC_SUPABASE_URL=seu_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sua_chave_anon_do_supabase
+```
+
+### Execução local
+1. Instale as dependências:
 ```bash
 npm install
 ```
-
-### 2. Configurar variáveis de ambiente
-Copie o arquivo `env.example` para `.env` e preencha com suas credenciais:
-
-```bash
-cp env.example .env
-```
-
-### 3. Criar esquema no Supabase
-Execute o arquivo `schema.sql` no SQL Editor do Supabase:
-
-```sql
--- Copie e cole o conteúdo de schema.sql no SQL Editor
--- Execute todas as queries para criar as tabelas
-```
-
-## 🔧 Estrutura do Projeto
-
-```
-src/
-├── lib/
-│   ├── env.ts          # Configuração de ambiente
-│   ├── http.ts         # Cliente HTTP (Trello + Supabase)
-│   ├── parse.ts        # Parsers de dados
-│   └── map.ts          # Utilitários
-├── 01_seed_board_and_lists.ts
-├── 02_index_card_ids_by_list.ts
-└── 03_enrich_cards.ts
-```
-
-## 📊 Etapas de Sincronização
-
-### Etapa 1: 🧱 Seed (Board + Listas)
+2. (Opcional) Build de produção:
 ```bash
 npm run build
-npm run seed
-# ou em desenvolvimento:
-npm run dev:seed
 ```
-
-**O que faz:**
-- Busca dados do board no Trello
-- Salva board no Supabase
-- Busca todas as listas do board
-- Salva listas no Supabase
-
-### Etapa 2: 🗂️ Indexação (IDs dos Cards)
+3. Desenvolvimento (porta 3000):
 ```bash
-npm run index
-# ou em desenvolvimento:
-npm run dev:index
+npm run dev
 ```
-
-**O que faz:**
-- Para cada lista, busca IDs dos cards
-- Salva dados mínimos dos cards (sem detalhes)
-- Prepara para enriquecimento posterior
-
-### Etapa 3: 🔎 Enriquecimento (Detalhes + Parsing)
+4. Produção (usando servidor HTTP customizado):
 ```bash
-npm run enrich
-# ou em desenvolvimento:
-npm run dev:enrich
+npm run start
 ```
 
-**O que faz:**
-- Busca cards pendentes de enriquecimento
-- Obtém detalhes completos de cada card
-- Parseia descrição padronizada
-- Extrai protocol_number do nome
-- Salva dados enriquecidos
+### Fluxo de dados (Supabase)
+A rota interna `GET /api/dashboard` lê as seguintes views via Supabase REST usando `SUPABASE_URL` e `SUPABASE_ANON_KEY`:
+- **`dashboard_total_cards`**: totais gerais (cards, classificados, sem tipo, com escrevente, com valor, valor total, reconferência)
+- **`dashboard_lists`**: resumo por lista (total e classificação)
+- **`dashboard_act_types`**: agregados por tipo de ato (quantidade e valor total)
+- **`dashboard_list_breakdown`**: detalhamento por lista e tipo de ato
+- **`dashboard_list_pivot`**: uma linha por lista e colunas por tipo de ato (inclui métricas de completude)
+- **`dashboard_list_summary`**: resumo executivo por lista
 
-## 📝 Formato da Descrição Padronizada
+Essas views são definidas em `dashboard_view.sql`. Para criar/atualizar:
+- Abra o SQL Editor do seu projeto Supabase
+- Cole e execute o conteúdo de `dashboard_view.sql`
 
-O sistema espera cards com descrição no formato:
+Observações importantes:
+- As views estão no schema `public`. Garanta permissões de leitura para o papel anônimo (ou políticas RLS compatíveis) para que o `SUPABASE_ANON_KEY` consiga executar `SELECT` nessas views via REST.
+- O endpoint REST do Supabase é resolvido a partir de `SUPABASE_URL`, no caminho `/rest/v1/<nome_da_view>?select=*`.
 
-```
-📆 Recebido em: 15/12/2023 14:30
-👤 Escrevente: João Silva
-💼 Natureza: Escritura Pública
-💰 Valor: 1.234,56
-📧 E-mail: joao.silva@cartorio.com
-Reconferência: sim
-```
-
-**Campos extraídos:**
-- `received_at`: Data/hora de recebimento
-- `clerk_name`: Nome do escrevente
-- `act_type`: Tipo de ato
-- `act_value`: Valor monetário (BRL)
-- `clerk_email`: E-mail do escrevente
-- `reconference`: Boolean (sim/nao)
-
-## 🔄 Idempotência
-
-- Todos os upserts usam `trello_id` como chave única
-- Pode executar as etapas múltiplas vezes sem duplicação
-- Etapa 3 só processa cards pendentes por padrão
-
-## 📈 Monitoramento
-
-Cada etapa exibe logs detalhados:
-- Contagem de itens processados
-- Progresso em tempo real
-- Erros com contexto completo
-
-## 🚨 Tratamento de Erros
-
-- Rate limiting do Trello (429)
-- Timeouts de rede
-- Validação de dados obrigatórios
-- Rollback automático em caso de falha
-
-## 🔧 Configuração Avançada
-
-### Lotes Personalizados
-Edite `src/lib/map.ts` para ajustar tamanhos de lote:
-
-```typescript
-export function chunk<T>(arr: T[], size = 300): T[][] {
-  // Ajuste o size conforme necessário
+### API interna
+- **Endpoint**: `GET /api/dashboard`
+- **Retorno**:
+```json
+{
+  "overall": { ... },
+  "lists": [ ... ],
+  "act_types": [ ... ],
+  "breakdown": [ ... ],
+  "pivot": [ ... ],
+  "summary": [ ... ]
 }
 ```
+- **Falhas comuns**:
+  - 500: variáveis `SUPABASE_URL`/`SUPABASE_ANON_KEY` ausentes
+  - 401/404 ao consultar Supabase: falta de permissões ou views não criadas
 
-### Concorrência Limitada
-Descomente em `src/03_enrich_cards.ts`:
+### Interface (componentes principais)
+- `components/dashboard-header.tsx`: cabeçalho, atualização manual
+- `components/stats-overview.tsx`: cards de métricas gerais
+- `components/visual-distribution.tsx`: gráficos de barras (listas e tipos)
+- `components/quick-insights.tsx`: destaques e alertas
+- `components/list-pivot-table.tsx`: visão pivot por lista
+- `components/list-breakdown-table.tsx`: detalhamento por lista/tipo
 
-```typescript
-import pLimit from 'p-limit';
-const limit = pLimit(5); // 5 requisições simultâneas
+### Estrutura de pastas
+```
+Conferencia/
+  app/
+    api/dashboard/route.ts
+    globals.css, layout.tsx, page.tsx
+  components/
+    ... (componentes do dashboard)
+  lib/utils.ts
+  dashboard_view.sql
+  env.dashboard.example
+  next.config.js, postcss.config.js, tailwind.config.js
+  package.json, package-lock.json
+  server.js
+  tsconfig.json, next-env.d.ts
 ```
 
-### Filtros Personalizados
-Modifique queries no Supabase para processar apenas cards específicos.
+### Deploy
+- O projeto está em produção na Railway: [conferencia-production-e880.up.railway.app](https://conferencia-production-e880.up.railway.app)
+- Para novos deploys, garanta que as variáveis de ambiente de produção (`SUPABASE_URL`, `SUPABASE_ANON_KEY`) estão configuradas e que as views existem no banco apontado.
 
-## 📊 Próximos Passos
+### Resolução de problemas
+- **Tela “Carregando Dashboard” por muito tempo**: verifique `/api/dashboard` no navegador. Se 500, confira o `.env`. Se 401/404, verifique políticas/permissões e se as views foram criadas.
+- **Aviso sobre lockfile no build**: a mensagem do Next sobre `patch-incorrect-lockfile` é inofensiva se o build finalizar OK.
+- **CORS**: como o fetch ocorre no servidor (rota API), em geral não há impacto; se mover requisições para o client, poderá exigir configuração do Supabase.
 
-1. **Webhook em tempo real** para sincronização automática
-2. **Dashboard de produtividade** com views SQL
-3. **Sincronização de membros** e labels
-4. **Histórico de movimentações** para analytics
 
-## 🤝 Contribuição
-
-1. Fork o projeto
-2. Crie uma branch para sua feature
-3. Commit suas mudanças
-4. Push para a branch
-5. Abra um Pull Request
-
-## 📄 Licença
-
-<<<<<<< HEAD
-MIT License - veja o arquivo LICENSE para detalhes. 
-
-## 🌐 Deploy (Hostinger / VPS genérica)
-
-Pré-requisitos:
-- Node.js 18+ instalado no servidor
-- Variáveis de ambiente configuradas (use `.env`)
-
-Passos:
-1. Clone o repositório
-   ```bash
-   git clone https://github.com/lucasttnwork/Conferencia.git
-   cd Conferencia
-   ```
-2. Configure as variáveis copiando o exemplo
-   ```bash
-   cp env.example .env
-   # edite .env com SUPABASE_URL e SUPABASE_ANON_KEY etc.
-   ```
-3. Instale (o build roda no postinstall)
-   ```bash
-   npm install
-   ```
-4. Inicie o servidor
-   ```bash
-   npm start
-   # ou: PORT=8080 npm start
-   ```
-
-Notas:
-- O servidor customizado `server.js` escuta em `0.0.0.0:${PORT}`.
-- Em Hostinger, crie uma aplicação Node apontando para `server.js` e configure as variáveis no painel.
-=======
-MIT License - veja o arquivo LICENSE para detalhes. 
->>>>>>> 9faaeadc2d8cb04ceb8537caaf5c55b02cd64a6a
