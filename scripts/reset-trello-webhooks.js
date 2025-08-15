@@ -34,6 +34,8 @@ async function main() {
 	if (!callbackURL) {
 		callbackURL = 'http://localhost:3000/api/trello/webhook'
 	}
+	// Normaliza espaços acidentais
+	callbackURL = String(callbackURL).trim()
 
 	console.log('callbackURL que será usado:', callbackURL)
 
@@ -107,6 +109,25 @@ async function main() {
 		process.exit(1)
 	}
 	const webhooksAfter = await verifyRes.json()
+	// Remover webhooks do mesmo board cujo callback NÃO seja exatamente o desejado
+	const mismatched = webhooksAfter.filter((w) => {
+		try {
+			return String(w.idModel) === String(trelloBoardId) && w.callbackURL.replace(/\/$/, '') !== callbackURL.replace(/\/$/, '')
+		} catch { return false }
+	})
+	if (mismatched.length > 0) {
+		console.log(`Removendo ${mismatched.length} webhook(s) do mesmo board com callback diferente do desejado)...`)
+		for (const wh of mismatched) {
+			const delRes = await fetch(`https://api.trello.com/1/webhooks/${wh.id}?key=${trelloKey}&token=${trelloToken}`, { method: 'DELETE' })
+			if (!delRes.ok) {
+				const text = await delRes.text()
+				console.error(`Falha ao excluir webhook ${wh.id}:`, text)
+			} else {
+				console.log(`Excluído (mismatch): ${wh.id}`)
+			}
+		}
+	}
+
 	const exists = webhooksAfter.find((w) => {
 		try {
 			return w.callbackURL.replace(/\/$/, '') === callbackURL.replace(/\/$/, '') && String(w.idModel) === String(trelloBoardId)

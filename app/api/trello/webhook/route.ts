@@ -75,17 +75,30 @@ export async function POST(request: Request) {
       )
     }
 
-    const computed = crypto
+    // Calcular assinatura com base na URL real da requisição e também via variável de ambiente (normalizada)
+    const requestCallbackUrl = request.url
+    const envCallbackUrl = (TRELLO_WEBHOOK_CALLBACK_URL || '').trim().replace(/;+$/, '')
+    const computedFromRequestUrl = crypto
       .createHmac('sha1', TRELLO_API_SECRET)
-      .update(rawBody + TRELLO_WEBHOOK_CALLBACK_URL)
+      .update(rawBody + requestCallbackUrl)
       .digest('base64')
 
-    const valid = isValidSignatureHeader(signatureHeader, computed)
+    const computedFromEnv = crypto
+      .createHmac('sha1', TRELLO_API_SECRET)
+      .update(rawBody + envCallbackUrl)
+      .digest('base64')
+
+    const valid =
+      isValidSignatureHeader(signatureHeader, computedFromRequestUrl) ||
+      isValidSignatureHeader(signatureHeader, computedFromEnv)
+
     if (!valid) {
       console.error('[Webhook Trello] Assinatura inválida:', {
         received: signatureHeader,
-        computed: computed,
-        callbackUrl: TRELLO_WEBHOOK_CALLBACK_URL,
+        computedFromRequestUrl,
+        computedFromEnv,
+        callbackUrl: envCallbackUrl,
+        requestUrl: requestCallbackUrl,
         allowUnverified: TRELLO_ALLOW_UNVERIFIED,
       })
       if (!TRELLO_ALLOW_UNVERIFIED) {
