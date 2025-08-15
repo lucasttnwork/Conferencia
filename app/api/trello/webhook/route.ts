@@ -20,6 +20,7 @@ const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY as strin
 
 const TRELLO_API_SECRET = process.env.TRELLO_API_SECRET as string | undefined
 const TRELLO_WEBHOOK_CALLBACK_URL = process.env.TRELLO_WEBHOOK_CALLBACK_URL as string | undefined
+const TRELLO_ALLOW_UNVERIFIED = String(process.env.TRELLO_ALLOW_UNVERIFIED || '').toLowerCase() === 'true'
 
 function buildSupabaseAdminClient() {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
@@ -79,14 +80,18 @@ export async function POST(request: Request) {
       .update(rawBody + TRELLO_WEBHOOK_CALLBACK_URL)
       .digest('base64')
 
-    if (!isValidSignatureHeader(signatureHeader, computed)) {
-      console.error('[Webhook Trello] Assinatura inválida:', { 
-        received: signatureHeader, 
+    const valid = isValidSignatureHeader(signatureHeader, computed)
+    if (!valid) {
+      console.error('[Webhook Trello] Assinatura inválida:', {
+        received: signatureHeader,
         computed: computed,
-        callbackUrl: TRELLO_WEBHOOK_CALLBACK_URL 
+        callbackUrl: TRELLO_WEBHOOK_CALLBACK_URL,
+        allowUnverified: TRELLO_ALLOW_UNVERIFIED,
       })
-      // TEMPORÁRIO: Aceitar para testar se funciona
-      console.warn('[Webhook Trello] Aceitando requisição sem validação para teste')
+      if (!TRELLO_ALLOW_UNVERIFIED) {
+        return NextResponse.json({ error: 'Assinatura inválida' }, { status: 401 })
+      }
+      console.warn('[Webhook Trello] Aceitando requisição sem validação (TRELLO_ALLOW_UNVERIFIED=true)')
     } else {
       console.log('[Webhook Trello] Assinatura válida, processando payload...')
     }
