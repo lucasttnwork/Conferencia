@@ -1,0 +1,167 @@
+// Carrega variáveis de ambiente do arquivo .env
+require('dotenv').config()
+
+async function main() {
+	const trelloKey = process.env.TRELLO_API_KEY
+	const trelloToken = process.env.TRELLO_API_TOKEN
+	const trelloBoardId = process.env.TRELLO_BOARD_ID
+	let callbackURL
+	// 0) Se houver override explícito, usa primeiro
+	const forced = process.env.FORCE_CALLBACK_URL
+	const railwayDomain = process.env.RAILWAY_PUBLIC_DOMAIN
+	if (forced) {
+		callbackURL = forced
+	} else if (railwayDomain) {
+		callbackURL = `https://${railwayDomain.replace(/\/$/, '')}/api/trello/webhook`
+	} else {
+		// 1) Se existir um URL de túnel em arquivo, priorize-o (ambiente local)
+		try {
+			const fs = require('fs')
+			const path = require('path')
+			const tunnelPath = path.join(process.cwd(), 'tunnel_url.txt')
+			if (fs.existsSync(tunnelPath)) {
+				const tunnel = fs.readFileSync(tunnelPath, 'utf8').trim()
+				if (tunnel) {
+					callbackURL = `${tunnel.replace(/\/$/, '')}/api/trello/webhook`
+				}
+			}
+		} catch {}
+		// 2) Caso não exista túnel, use a variável de ambiente
+		if (!callbackURL) {
+			callbackURL = process.env.TRELLO_WEBHOOK_CALLBACK_URL
+		}
+	}
+	if (!callbackURL) {
+		callbackURL = 'http://localhost:3000/api/trello/webhook'
+	}
+	// Normaliza espaços acidentais
+	callbackURL = String(callbackURL).trim()
+
+	console.log('callbackURL que será usado:', callbackURL)
+
+	if (!trelloKey || !trelloToken) {
+		console.error('Erro: TRELLO_API_KEY e/ou TRELLO_API_TOKEN não definidos no .env')
+		process.exit(1)
+	}
+	if (!trelloBoardId) {
+		console.error('Erro: TRELLO_BOARD_ID não definido no .env')
+		process.exit(1)
+	}
+
+	console.log('Listando webhooks existentes para o token...')
+	const listRes = await fetch(`https://api.trello.com/1/tokens/${trelloToken}/webhooks?key=${trelloKey}&token=${trelloToken}`)
+	if (!listRes.ok) {
+		const text = await listRes.text()
+		console.error('Falha ao listar webhooks:', text)
+		process.exit(1)
+	}
+	const webhooks = await listRes.json()
+	console.log(`Encontrados ${webhooks.length} webhooks`) 
+	for (const wh of webhooks) {
+		console.log(`- ${wh.id} -> ${wh.callbackURL}`)
+	}
+
+	// Remover apenas webhooks locais (localhost/ngrok/localtunnel ou túnel salvo)
+	let tunnelHost = ''
+	try {
+		const fs = require('fs')
+		const path = require('path')
+		const tunnelPath = path.join(process.cwd(), 'tunnel_url.txt')
+		if (fs.existsSync(tunnelPath)) {
+			const tunnel = fs.readFileSync(tunnelPath, 'utf8').trim()
+			tunnelHost = new URL(tunnel).host
+		}
+	} catch {}
+	const isLocalWebhook = (url) => {
+		try {
+			const u = new URL(url)
+			return (
+				u.hostname === 'localhost' ||
+				u.hostname === '127.0.0.1' ||
+				u.hostname.includes('ngrok') ||
+				u.hostname.includes('loca.lt') ||
+				u.hostname.includes('localtunnel') ||
+				(tunnelHost && u.host === tunnelHost)
+			)
+		} catch { return false }
+	}
+	const localWebhooks = webhooks.filter((w) => isLocalWebhook(w.callbackURL))
+	if (localWebhooks.length > 0) {
+		console.log(`Removendo ${localWebhooks.length} webhook(s) local(is)...`)
+		for (const wh of localWebhooks) {
+			const delRes = await fetch(`https://api.trello.com/1/webhooks/${wh.id}?key=${trelloKey}&token=${trelloToken}`, { method: 'DELETE' })
+			if (!delRes.ok) {
+				const text = await delRes.text()
+				console.error(`Falha ao excluir webhook ${wh.id}:`, text)
+			} else {
+				console.log(`Excluído: ${wh.id}`)
+			}
+		}
+	} else {
+		console.log('Nenhum webhook local para excluir.')
+	}
+
+	// Se já existir um webhook com o callback desejado para o mesmo board (lista ATUALIZADA), não recria
+	const verifyRes = await fetch(`https://api.trello.com/1/tokens/${trelloToken}/webhooks?key=${trelloKey}&token=${trelloToken}`)
+	if (!verifyRes.ok) {
+		const text = await verifyRes.text()
+		console.error('Falha ao listar webhooks (verificação):', text)
+		process.exit(1)
+	}
+	const webhooksAfter = await verifyRes.json()
+	// Remover webhooks do mesmo board cujo callback NÃO seja exatamente o desejado
+	const mismatched = webhooksAfter.filter((w) => {
+		try {
+			return String(w.idModel) === String(trelloBoardId) && w.callbackURL.replace(/\/$/, '') !== callbackURL.replace(/\/$/, '')
+		} catch { return false }
+	})
+	if (mismatched.length > 0) {
+		console.log(`Removendo ${mismatched.length} webhook(s) do mesmo board com callback diferente do desejado)...`)
+		for (const wh of mismatched) {
+			const delRes = await fetch(`https://api.trello.com/1/webhooks/${wh.id}?key=${trelloKey}&token=${trelloToken}`, { method: 'DELETE' })
+			if (!delRes.ok) {
+				const text = await delRes.text()
+				console.error(`Falha ao excluir webhook ${wh.id}:`, text)
+			} else {
+				console.log(`Excluído (mismatch): ${wh.id}`)
+			}
+		}
+	}
+
+	const exists = webhooksAfter.find((w) => {
+		try {
+			return w.callbackURL.replace(/\/$/, '') === callbackURL.replace(/\/$/, '') && String(w.idModel) === String(trelloBoardId)
+		} catch { return false }
+	})
+	if (exists) {
+		console.log('Já existe um webhook com o callback desejado para este board. Nada a fazer.')
+		return
+	}
+
+	console.log('Registrando novo webhook...')
+	const createRes = await fetch(`https://api.trello.com/1/webhooks/?key=${trelloKey}&token=${trelloToken}`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({
+			description: 'Webhook do Dashboard (local)',
+			callbackURL,
+			idModel: trelloBoardId,
+			active: true,
+		}),
+	})
+	if (!createRes.ok) {
+		const text = await createRes.text()
+		console.error('Falha ao criar webhook:', text)
+		process.exit(1)
+	}
+	const created = await createRes.json()
+	console.log('Webhook criado com sucesso:')
+	console.log({ id: created.id, callbackURL: created.callbackURL })
+}
+
+main().catch((err) => {
+	console.error('Erro inesperado:', err)
+	process.exit(1)
+})
+
+

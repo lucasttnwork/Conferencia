@@ -113,3 +113,68 @@ Conferencia/
 - **CORS**: como o fetch ocorre no servidor (rota API), em geral não há impacto; se mover requisições para o client, poderá exigir configuração do Supabase.
 
 
+### Webhook do Trello → Supabase (em tempo real)
+
+1. Variáveis de ambiente adicionais (`Conferencia/.env`):
+
+```
+SUPABASE_SERVICE_ROLE_KEY=...
+
+TRELLO_API_KEY=...
+TRELLO_API_TOKEN=...
+TRELLO_BOARD_ID=...
+TRELLO_API_SECRET=...
+TRELLO_WEBHOOK_CALLBACK_URL=https://<sua-base>/api/trello/webhook
+TRELLO_ALLOW_UNVERIFIED=false   # true em DEV para aceitar webhook sem assinatura
+```
+
+2. Crie as tabelas (se ainda não existir) no Supabase:
+
+```
+create table if not exists public.card_events (
+  id uuid primary key default gen_random_uuid(),
+  trello_action_id text unique,
+  action_type text not null,
+  raw_action_type text,
+  card_id text,
+  card_name text,
+  board_id text,
+  board_name text,
+  list_from_id text,
+  list_from_name text,
+  list_to_id text,
+  list_to_name text,
+  member_id text,
+  member_username text,
+  member_fullname text,
+  occurred_at timestamptz not null default now(),
+  payload_json jsonb,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.lists (
+  id text primary key,
+  name text,
+  pos numeric,
+  closed boolean default false
+);
+
+create table if not exists public.cards (
+  id text primary key,
+  name text,
+  current_list_id text references public.lists(id),
+  act_type text,
+  act_value numeric,
+  clerk_name text,
+  reconference boolean default false
+);
+```
+
+3. Endpoints:
+   - `HEAD /api/trello/webhook`: verificação do Trello ao registrar webhook
+   - `POST /api/trello/webhook`: recebe eventos, valida assinatura e grava em `card_events`, atualiza `lists/cards`
+   - `POST /api/trello/register`: registra webhook no Trello usando as variáveis
+
+4. Realtime no frontend: assine tabelas no Supabase e faça `refetch` de `/api/dashboard` quando houver mudanças.
+
+
