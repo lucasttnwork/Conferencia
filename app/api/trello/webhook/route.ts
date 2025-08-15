@@ -34,16 +34,19 @@ async function getRawBody(request: Request): Promise<string> {
   return await request.text()
 }
 
-function verifyTrelloSignature(rawBody: string): boolean {
-  if (!TRELLO_API_SECRET || !TRELLO_WEBHOOK_CALLBACK_URL) return false
-  // A assinatura do Trello é HMAC-SHA1 em base64 de (rawBody + callbackURL)
-  const expected = crypto
-    .createHmac('sha1', TRELLO_API_SECRET)
-    .update(rawBody + TRELLO_WEBHOOK_CALLBACK_URL)
-    .digest('base64')
-  return expected
-    ? expected.length > 0
-    : false
+function normalizeCallbackUrl(url: string): string {
+  // Remove espaços, ponto e vírgula e barras finais redundantes
+  return String(url).trim().replace(/;+$/, '').replace(/\/+$/, '')
+}
+
+function resolveCallbackUrlFromEnv(): string | null {
+  const forced = (process.env.FORCE_CALLBACK_URL || '').trim()
+  if (forced) return normalizeCallbackUrl(forced)
+  const railway = (process.env.RAILWAY_PUBLIC_DOMAIN || '').trim()
+  if (railway) return normalizeCallbackUrl(`https://${railway.replace(/\/$/, '')}/api/trello/webhook`)
+  const envUrl = (TRELLO_WEBHOOK_CALLBACK_URL || '').trim()
+  if (envUrl) return normalizeCallbackUrl(envUrl)
+  return null
 }
 
 function isValidSignatureHeader(headerValue: string | null | undefined, computed: string): boolean {
@@ -68,16 +71,26 @@ export async function POST(request: Request) {
 
     // Verificar assinatura do Trello
     const signatureHeader = request.headers.get('x-trello-webhook')
-    if (!TRELLO_API_SECRET || !TRELLO_WEBHOOK_CALLBACK_URL) {
+    if (!TRELLO_API_SECRET) {
       return NextResponse.json(
-        { error: 'TRELLO_API_SECRET/TRELLO_WEBHOOK_CALLBACK_URL não configurados' },
+        { error: 'TRELLO_API_SECRET não configurado' },
         { status: 500 }
       )
     }
 
-    // Calcular assinatura com base na URL real da requisição e também via variável de ambiente (normalizada)
-    const requestCallbackUrl = request.url
-    const envCallbackUrl = (TRELLO_WEBHOOK_CALLBACK_URL || '').trim().replace(/;+$/, '')
+    // Calcular assinatura priorizando a URL de callback que foi usada no registro do webhook
+    // (FORCE_CALLBACK_URL -> RAILWAY_PUBLIC_DOMAIN -> TRELLO_WEBHOOK_CALLBACK_URL)
+    const resolvedCallbackUrl = resolveCallbackUrlFromEnv()
+    if (!resolvedCallbackUrl) {
+      return NextResponse.json(
+        { error: 'URL de callback do Trello não pôde ser resolvida a partir das variáveis de ambiente' },
+        { status: 500 }
+      )
+    }
+
+    // Para diagnóstico, também calculamos com a URL da requisição recebida (que pode divergir atrás de proxies)
+    const requestCallbackUrl = normalizeCallbackUrl(request.url)
+    const envCallbackUrl = resolvedCallbackUrl
     const computedFromRequestUrl = crypto
       .createHmac('sha1', TRELLO_API_SECRET)
       .update(rawBody + requestCallbackUrl)
