@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { createClient } from '@supabase/supabase-js'
 import { DashboardHeader } from '@/components/dashboard-header'
 import { StatsOverview } from '@/components/stats-overview'
 import { VisualDistribution } from '@/components/visual-distribution'
@@ -128,6 +129,31 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchDashboardData()
+  }, [])
+
+  // Realtime: revalidar quando eventos afetarem listas/cards
+  useEffect(() => {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    if (!url || !key) return
+
+    const supabase = createClient(url, key)
+    const channel = supabase
+      .channel('dashboard-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'card_events' }, () => {
+        fetchDashboardData()
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'cards' }, () => {
+        fetchDashboardData()
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'lists' }, () => {
+        fetchDashboardData()
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [])
 
   if (loading && !data) {
