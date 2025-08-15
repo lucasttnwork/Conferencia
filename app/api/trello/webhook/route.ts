@@ -49,6 +49,37 @@ function resolveCallbackUrlFromEnv(): string | null {
   return null
 }
 
+function buildCallbackUrlVariants(primary: string, requestUrl: string, headers: Headers): string[] {
+  const variants = new Set<string>()
+
+  const add = (u: string | null | undefined) => {
+    if (!u) return
+    const n = normalizeCallbackUrl(u)
+    if (n) {
+      variants.add(n)
+      variants.add(n + '/')
+    }
+  }
+
+  // 1) A partir da URL "canônica" resolvida pelo ambiente
+  add(primary)
+
+  // 2) A partir da URL da requisição (pode ser 0.0.0.0:PORT)
+  add(requestUrl)
+
+  // 3) Reconstruída via cabeçalhos de proxy (Railway/Ingress)
+  try {
+    const forwardedProto = headers.get('x-forwarded-proto') || 'https'
+    const forwardedHost = headers.get('x-forwarded-host')
+    const u = new URL(requestUrl)
+    if (forwardedHost) {
+      add(`${forwardedProto}://${forwardedHost}${u.pathname}`)
+    }
+  } catch {}
+
+  return Array.from(variants)
+}
+
 function isValidSignatureHeader(headerValue: string | null | undefined, computed: string): boolean {
   if (!headerValue) return false
   // Alguns proxies podem alterar capitalização; comparação direta basta
@@ -88,22 +119,31 @@ export async function POST(request: Request) {
       )
     }
 
-    // Para diagnóstico, também calculamos com a URL da requisição recebida (que pode divergir atrás de proxies)
+    // Tentar múltiplas variantes de URL para cobrir diferenças sutis (barra final, host de proxy, etc.)
     const requestCallbackUrl = normalizeCallbackUrl(request.url)
     const envCallbackUrl = resolvedCallbackUrl
+    const urlVariants = buildCallbackUrlVariants(envCallbackUrl, requestCallbackUrl, request.headers)
+
+    let matched = ''
+    for (const candidate of urlVariants) {
+      const digest = crypto.createHmac('sha1', TRELLO_API_SECRET).update(rawBody + candidate).digest('base64')
+      if (isValidSignatureHeader(signatureHeader, digest)) {
+        matched = candidate
+        break
+      }
+    }
+
+    // Também manter os dois valores principais para log
     const computedFromRequestUrl = crypto
       .createHmac('sha1', TRELLO_API_SECRET)
       .update(rawBody + requestCallbackUrl)
       .digest('base64')
-
     const computedFromEnv = crypto
       .createHmac('sha1', TRELLO_API_SECRET)
       .update(rawBody + envCallbackUrl)
       .digest('base64')
 
-    const valid =
-      isValidSignatureHeader(signatureHeader, computedFromRequestUrl) ||
-      isValidSignatureHeader(signatureHeader, computedFromEnv)
+    const valid = matched.length > 0
 
     if (!valid) {
       console.error('[Webhook Trello] Assinatura inválida:', {
@@ -112,6 +152,7 @@ export async function POST(request: Request) {
         computedFromEnv,
         callbackUrl: envCallbackUrl,
         requestUrl: requestCallbackUrl,
+        triedVariants: urlVariants.length,
         allowUnverified: TRELLO_ALLOW_UNVERIFIED,
       })
       if (!TRELLO_ALLOW_UNVERIFIED) {
