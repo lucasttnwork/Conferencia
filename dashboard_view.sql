@@ -145,7 +145,7 @@ orphaned_cards AS (
 SELECT * FROM list_stats
 UNION ALL
 SELECT 
-  gen_random_uuid() as id,
+  (gen_random_uuid())::text as id,
   name,
   position,
   total_cards,
