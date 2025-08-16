@@ -252,38 +252,76 @@ export async function POST(request: Request) {
     const listsHasBoardId = await tableHasColumn(supabase, 'lists', 'board_id')
     const cardsHasBoardId = await tableHasColumn(supabase, 'cards', 'board_id')
     const cardsHasTrelloId = await tableHasColumn(supabase, 'cards', 'trello_id')
+    const listsHasTrelloId = await tableHasColumn(supabase, 'lists', 'trello_id')
+    const boardsHasTrelloId = await tableHasColumn(supabase, 'boards', 'trello_id')
+    const membersHasTrelloId = await tableHasColumn(supabase, 'members', 'trello_id')
     const membersHasUsername = await tableHasColumn(supabase, 'members', 'username')
     const membersHasFullName = await tableHasColumn(supabase, 'members', 'full_name')
     const membersHasFullNameCamel = await tableHasColumn(supabase, 'members', 'fullName')
+    const movementsHasFromListName = await tableHasColumn(supabase, 'card_movements', 'from_list_name')
+    const movementsHasToListName = await tableHasColumn(supabase, 'card_movements', 'to_list_name')
     const movementsHasBoardId = await tableHasColumn(supabase, 'card_movements', 'board_id')
     const movementsHasMovedByMember = await tableHasColumn(supabase, 'card_movements', 'moved_by_member_id')
 
     // Upsert de entidades de referência antes (boards, members)
+    // Resolver/assegurar board antes para poder popular FKs (board_id)
+    let boardUuidForFk: string | null = null
     if (hasBoards && boardId) {
-      // Evitar 22P02 quando a coluna "id" for UUID em DB externo: só tenta se parecer UUID
-      if (looksLikeUuid(boardId)) {
-        const { error: boardsError } = await supabase
-          .from('boards')
-          .upsert([{ id: boardId, name: board?.name || null }], { onConflict: 'id' })
-        if (boardsError) {
-          console.error('[Webhook Trello] Erro ao upsert em boards:', boardsError)
+      try {
+        if (boardsHasTrelloId) {
+          const { error: boardsError } = await supabase
+            .from('boards')
+            .upsert([{ trello_id: boardId, name: board?.name || null }], { onConflict: 'trello_id' })
+          if (boardsError) {
+            console.error('[Webhook Trello] Erro ao upsert em boards:', boardsError)
+          }
+          const { data: boardRow } = await supabase
+            .from('boards')
+            .select('id')
+            .eq('trello_id', boardId)
+            .maybeSingle()
+          boardUuidForFk = boardRow?.id || null
+        } else if (looksLikeUuid(boardId)) {
+          // Schema sem trello_id e com id como UUID
+          const { error: boardsError } = await supabase
+            .from('boards')
+            .upsert([{ id: boardId, name: board?.name || null }], { onConflict: 'id' })
+          if (boardsError) {
+            console.error('[Webhook Trello] Erro ao upsert em boards:', boardsError)
+          } else {
+            boardUuidForFk = boardId
+          }
+        } else {
+          console.warn('[Webhook Trello] Ignorando upsert em boards: boardId não é UUID compatível com schema existente')
         }
-      } else {
-        console.warn('[Webhook Trello] Ignorando upsert em boards: boardId não é UUID compatível com schema existente')
+      } catch (e) {
+        console.error('[Webhook Trello] Falha ao preparar board:', e)
       }
     }
+
+    // Members (usar trello_id quando disponível; senão somente se id for UUID)
     if (hasMembers && member?.id) {
       try {
-        const memberPayload: Record<string, any> = { id: member.id }
-        if (membersHasUsername) memberPayload.username = member.username || null
-        if (membersHasFullName) memberPayload.full_name = member.fullName || null
-        else if (membersHasFullNameCamel) memberPayload.fullName = member.fullName || null
-
-        const { error: membersError } = await supabase
-          .from('members')
-          .upsert([memberPayload], { onConflict: 'id' })
-        if (membersError) {
-          console.error('[Webhook Trello] Erro ao upsert em members:', membersError)
+        let onConflict = 'id'
+        const memberPayload: Record<string, any> = {}
+        if (membersHasTrelloId) {
+          memberPayload.trello_id = member.id
+          onConflict = 'trello_id'
+        } else if (looksLikeUuid(member.id)) {
+          memberPayload.id = member.id
+        } else {
+          console.warn('[Webhook Trello] Ignorando upsert em members: id não-UUID e sem coluna trello_id')
+        }
+        if (Object.keys(memberPayload).length > 0) {
+          if (membersHasUsername) memberPayload.username = member.username || null
+          if (membersHasFullName) memberPayload.full_name = member.fullName || null
+          else if (membersHasFullNameCamel) memberPayload.fullName = member.fullName || null
+          const { error: membersError } = await supabase
+            .from('members')
+            .upsert([memberPayload], { onConflict })
+          if (membersError) {
+            console.error('[Webhook Trello] Erro ao upsert em members:', membersError)
+          }
         }
       } catch (e) {
         console.error('[Webhook Trello] Falha ao upsert em members:', e)
@@ -292,17 +330,29 @@ export async function POST(request: Request) {
 
     // Upsert em lists/cards para manter estado atual
     const listsToUpsert: Array<Record<string, any>> = []
-    if (listFrom?.id) listsToUpsert.push({ id: listFrom.id, name: listFrom.name || null })
-    if (listTo?.id) listsToUpsert.push({ id: listTo.id, name: listTo.name || null })
+    const addListForUpsert = (l: any) => {
+      if (!l?.id) return
+      const row: Record<string, any> = {}
+      if (listsHasTrelloId) row.trello_id = l.id
+      else row.id = l.id
+      row.name = l.name || null
+      if (listsHasBoardId && boardUuidForFk) row.board_id = boardUuidForFk
+      listsToUpsert.push(row)
+    }
+    addListForUpsert(listFrom)
+    addListForUpsert(listTo)
     // Fallback: alguns eventos trazem apenas card.idList
     const idListFallback: string | null = typeof data?.card?.idList === 'string' ? data.card.idList : null
-    if (idListFallback && !listsToUpsert.some(l => l.id === idListFallback)) {
-      const stub: Record<string, any> = { id: idListFallback, name: null }
-      if (listsHasBoardId && boardId) stub.board_id = boardId
+    if (idListFallback && !listsToUpsert.some(l => (listsHasTrelloId ? l.trello_id : l.id) === idListFallback)) {
+      const stub: Record<string, any> = {}
+      if (listsHasTrelloId) stub.trello_id = idListFallback
+      else stub.id = idListFallback
+      stub.name = null
+      if (listsHasBoardId && boardUuidForFk) stub.board_id = boardUuidForFk
       listsToUpsert.push(stub)
     }
     if (listsToUpsert.length > 0) {
-      const { error: listsError } = await supabase.from('lists').upsert(listsToUpsert, { onConflict: 'id' })
+      const { error: listsError } = await supabase.from('lists').upsert(listsToUpsert, { onConflict: listsHasTrelloId ? 'trello_id' : 'id' })
       if (listsError) {
         console.error('[Webhook Trello] Erro ao upsert em lists:', listsError)
       }
@@ -310,8 +360,14 @@ export async function POST(request: Request) {
 
     if (card?.id) {
       const updateBase: Record<string, any> = {
-        id: card.id,
         name: card.name || null,
+      }
+      let onConflictCards = 'id'
+      if (cardsHasTrelloId) {
+        updateBase.trello_id = card.id
+        onConflictCards = 'trello_id'
+      } else {
+        updateBase.id = card.id
       }
       if (eventType === 'create' && listTo?.id) {
         updateBase.current_list_id = listTo.id
@@ -335,21 +391,50 @@ export async function POST(request: Request) {
         updateBase.current_list_id = data.card.idList
       }
 
-      // Tentar incluir board_id se existir na tabela
+      // Resolver current_list_id uuid se necessário
+      try {
+        if (updateBase.current_list_id && listsHasTrelloId) {
+          const trelloListId = updateBase.current_list_id
+          const { data: listRow } = await supabase
+            .from('lists')
+            .select('id')
+            .eq('trello_id', trelloListId)
+            .maybeSingle()
+          if (listRow?.id) {
+            updateBase.current_list_id = listRow.id
+          }
+        }
+      } catch {}
+
+      // Tentar incluir board_id resolvido
+      // 1) Preferir boardUuidForFk (derivado de boards via trello_id)
       let updatePayload: Record<string, any> = { ...updateBase }
-      // Atender schemas que exigem trello_id NOT NULL
-      if (cardsHasTrelloId && card.id) {
-        updatePayload.trello_id = card.id
+      if (cardsHasBoardId && boardUuidForFk) {
+        updatePayload.board_id = boardUuidForFk
+      } else if (cardsHasBoardId) {
+        // 2) Se boardId é UUID nativo
+        if (boardId && looksLikeUuid(boardId)) {
+          updatePayload.board_id = boardId
+        } else if (updateBase.current_list_id && listsHasBoardId) {
+          // 3) Buscar board_id a partir da lista atual
+          try {
+            const listKey = listsHasTrelloId ? { trello_id: data?.card?.idList || listTo?.id || listFrom?.id } : { id: updateBase.current_list_id }
+            const { data: listWithBoard } = await supabase
+              .from('lists')
+              .select('board_id')
+              .match(listKey as any)
+              .maybeSingle()
+            if (listWithBoard?.board_id) {
+              updatePayload.board_id = listWithBoard.board_id
+            }
+          } catch {}
+        }
       }
-      if (cardsHasBoardId && boardId) {
-        updatePayload.board_id = boardId
-      }
-      let { error: cardsError } = await supabase.from('cards').upsert([updatePayload], { onConflict: 'id' })
+      let { error: cardsError } = await supabase.from('cards').upsert([updatePayload], { onConflict: onConflictCards })
       if (cardsError && (cardsHasBoardId || cardsHasTrelloId)) {
-        // Fallback: tenta sem board_id, mas mantendo trello_id se existir
+        // Fallback: tenta sem board_id, mantendo chave de conflito
         const fallback: Record<string, any> = { ...updateBase }
-        if (cardsHasTrelloId && card.id) fallback.trello_id = card.id
-        const { error: cardsErrorFallback } = await supabase.from('cards').upsert([fallback], { onConflict: 'id' })
+        let { error: cardsErrorFallback } = await supabase.from('cards').upsert([fallback], { onConflict: onConflictCards })
         if (cardsErrorFallback) {
           console.error('[Webhook Trello] Erro ao upsert em cards (fallback também falhou):', cardsErrorFallback, { update: updateBase })
         }
@@ -364,17 +449,18 @@ export async function POST(request: Request) {
         const movementBase: Record<string, any> = {
           trello_action_id: action.id,
           card_id: card.id || null,
-          from_list_id: listFrom?.id || null,
-          from_list_name: listFrom?.name || null,
-          to_list_id: listTo?.id || null,
-          to_list_name: listTo?.name || null,
-          member_id: member?.id || null,
-          member_username: member?.username || null,
-          member_fullname: member?.fullName || null,
           occurred_at: occurredAt ? new Date(occurredAt).toISOString() : new Date().toISOString(),
         }
+        // Condicionalmente incluir campos
+        if (listFrom?.id) movementBase.from_list_id = listFrom.id
+        if (movementsHasFromListName && listFrom?.name) movementBase.from_list_name = listFrom.name
+        if (listTo?.id) movementBase.to_list_id = listTo.id
+        if (movementsHasToListName && listTo?.name) movementBase.to_list_name = listTo.name
+        if (member?.id) movementBase.member_id = member.id
+        if (member?.username) movementBase.member_username = member.username
+        if (member?.fullName) movementBase.member_fullname = member.fullName
         let movementPayload: Record<string, any> = { ...movementBase }
-        if (movementsHasBoardId && boardId) movementPayload.board_id = boardId
+        if (movementsHasBoardId && boardUuidForFk) movementPayload.board_id = boardUuidForFk
         if (movementsHasMovedByMember && member?.id) movementPayload.moved_by_member_id = member.id
 
         let { error: movementErrorUpsert } = await supabase.from('card_movements').upsert(movementPayload, { onConflict: 'trello_action_id' })
