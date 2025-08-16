@@ -182,7 +182,7 @@ export async function POST(request: Request) {
     const board = data.board || {}
     const card = data.card || {}
 
-    let eventType: 'create' | 'move' | 'update' | 'delete' | 'comment' | 'other' = 'other'
+    let eventType: 'create' | 'move' | 'update' | 'delete' | 'comment' | 'archive' | 'unarchive' | 'other' = 'other'
     let listFrom: any = null
     let listTo: any = null
 
@@ -193,6 +193,9 @@ export async function POST(request: Request) {
       eventType = 'move'
       listFrom = data.listBefore
       listTo = data.listAfter
+    } else if (actionType === 'updateCard' && typeof data?.card?.closed === 'boolean') {
+      // Arquivamento / Desarquivamento explícitos
+      eventType = data.card.closed ? 'archive' : 'unarchive'
     } else if (actionType === 'deleteCard') {
       eventType = 'delete'
     } else if (actionType === 'commentCard') {
@@ -201,8 +204,8 @@ export async function POST(request: Request) {
       eventType = 'update'
     }
 
-    // Inserir evento bruto para auditoria
-    await supabase.from('card_events').insert({
+    // Inserir evento bruto para auditoria (idempotente por trello_action_id)
+    const { error: cardEventsError } = await supabase.from('card_events').upsert({
       trello_action_id: action.id,
       action_type: eventType,
       raw_action_type: actionType,
@@ -219,12 +222,15 @@ export async function POST(request: Request) {
       member_fullname: member?.fullName || null,
       occurred_at: occurredAt ? new Date(occurredAt).toISOString() : new Date().toISOString(),
       payload_json: payload
-    })
+    }, { onConflict: 'trello_action_id' })
+    if (cardEventsError) {
+      console.error('[Webhook Trello] Erro ao upsert em card_events:', cardEventsError)
+    }
 
-    // Registrar movimentações explícitas
+    // Registrar movimentações explícitas (idempotente por trello_action_id)
     if (eventType === 'move' || eventType === 'create') {
       try {
-        await supabase.from('card_movements').insert({
+        const { error: movementErrorUpsert } = await supabase.from('card_movements').upsert({
           trello_action_id: action.id,
           card_id: card.id || null,
           from_list_id: listFrom?.id || null,
@@ -235,7 +241,10 @@ export async function POST(request: Request) {
           member_username: member?.username || null,
           member_fullname: member?.fullName || null,
           occurred_at: occurredAt ? new Date(occurredAt).toISOString() : new Date().toISOString(),
-        })
+        }, { onConflict: 'trello_action_id' })
+        if (movementErrorUpsert) {
+          console.error('[Webhook Trello] Erro ao upsert em card_movements:', movementErrorUpsert)
+        }
       } catch (movementError) {
         console.warn('[Webhook Trello] Falha ao inserir em card_movements (tabela ausente?):', movementError)
       }
@@ -247,7 +256,10 @@ export async function POST(request: Request) {
       if (listFrom?.id) listsToUpsert.push({ id: listFrom.id, name: listFrom.name || null })
       if (listTo?.id) listsToUpsert.push({ id: listTo.id, name: listTo.name || null })
       if (listsToUpsert.length > 0) {
-        await supabase.from('lists').upsert(listsToUpsert, { onConflict: 'id' })
+        const { error: listsError } = await supabase.from('lists').upsert(listsToUpsert, { onConflict: 'id' })
+        if (listsError) {
+          console.error('[Webhook Trello] Erro ao upsert em lists:', listsError)
+        }
       }
     }
 
@@ -263,15 +275,28 @@ export async function POST(request: Request) {
         update.current_list_id = listTo.id
       }
 
-      // Atualizar status de arquivamento quando presente
-      if (typeof data?.card?.closed === 'boolean') {
+      // Atualizar status de arquivamento
+      if (eventType === 'archive') {
+        update.is_closed = true
+      } else if (eventType === 'unarchive') {
+        update.is_closed = false
+      } else if (typeof data?.card?.closed === 'boolean') {
+        // Fallback para casos em que o evento venha como update genérico
         update.is_closed = Boolean(data.card.closed)
       }
       if (eventType === 'delete') {
         update.is_closed = true
       }
 
-      await supabase.from('cards').upsert([update], { onConflict: 'id' })
+      // Fallback: alguns updateCard trazem apenas card.idList (sem listBefore/After)
+      if (!update.current_list_id && typeof data?.card?.idList === 'string' && (eventType === 'update' || eventType === 'unarchive' || eventType === 'archive')) {
+        update.current_list_id = data.card.idList
+      }
+
+      const { error: cardsError } = await supabase.from('cards').upsert([update], { onConflict: 'id' })
+      if (cardsError) {
+        console.error('[Webhook Trello] Erro ao upsert em cards:', cardsError, { update })
+      }
     }
 
     return NextResponse.json({ ok: true })
