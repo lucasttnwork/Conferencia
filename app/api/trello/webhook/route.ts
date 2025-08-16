@@ -48,6 +48,13 @@ function normalizeCallbackUrl(url: string): string {
   return String(url).trim().replace(/;+$/, '').replace(/\/+$/, '')
 }
 
+function looksLikeUuid(value: string): boolean {
+  // v4 UUID com hifens ou 32 hex sem hifens
+  const uuidHyphenated = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+  const uuidCompact = /^[0-9a-f]{32}$/i
+  return uuidHyphenated.test(value) || uuidCompact.test(value)
+}
+
 function resolveCallbackUrlFromEnv(): string | null {
   const forced = (process.env.FORCE_CALLBACK_URL || '').trim()
   if (forced) return normalizeCallbackUrl(forced)
@@ -244,28 +251,42 @@ export async function POST(request: Request) {
     const hasMembers = await tableHasColumn(supabase, 'members', 'id')
     const listsHasBoardId = await tableHasColumn(supabase, 'lists', 'board_id')
     const cardsHasBoardId = await tableHasColumn(supabase, 'cards', 'board_id')
+    const cardsHasTrelloId = await tableHasColumn(supabase, 'cards', 'trello_id')
+    const membersHasUsername = await tableHasColumn(supabase, 'members', 'username')
+    const membersHasFullName = await tableHasColumn(supabase, 'members', 'full_name')
+    const membersHasFullNameCamel = await tableHasColumn(supabase, 'members', 'fullName')
     const movementsHasBoardId = await tableHasColumn(supabase, 'card_movements', 'board_id')
     const movementsHasMovedByMember = await tableHasColumn(supabase, 'card_movements', 'moved_by_member_id')
 
     // Upsert de entidades de referência antes (boards, members)
     if (hasBoards && boardId) {
-      const { error: boardsError } = await supabase.from('boards').upsert([{ id: boardId, name: board?.name || null }], { onConflict: 'id' })
-      if (boardsError) {
-        console.error('[Webhook Trello] Erro ao upsert em boards:', boardsError)
+      // Evitar 22P02 quando a coluna "id" for UUID em DB externo: só tenta se parecer UUID
+      if (looksLikeUuid(boardId)) {
+        const { error: boardsError } = await supabase
+          .from('boards')
+          .upsert([{ id: boardId, name: board?.name || null }], { onConflict: 'id' })
+        if (boardsError) {
+          console.error('[Webhook Trello] Erro ao upsert em boards:', boardsError)
+        }
+      } else {
+        console.warn('[Webhook Trello] Ignorando upsert em boards: boardId não é UUID compatível com schema existente')
       }
     }
     if (hasMembers && member?.id) {
-      const { error: membersError } = await supabase.from('members').upsert([
-        { id: member.id, username: member.username || null, full_name: member.fullName || null }
-      ], { onConflict: 'id' })
-      if (membersError) {
-        // Tentar fallback para colunas com nomes alternativos
-        const { error: membersErrorAlt } = await supabase.from('members').upsert([
-          { id: member.id, username: member.username || null, fullName: member.fullName || null }
-        ], { onConflict: 'id' })
-        if (membersErrorAlt) {
-          console.error('[Webhook Trello] Erro ao upsert em members:', membersErrorAlt)
+      try {
+        const memberPayload: Record<string, any> = { id: member.id }
+        if (membersHasUsername) memberPayload.username = member.username || null
+        if (membersHasFullName) memberPayload.full_name = member.fullName || null
+        else if (membersHasFullNameCamel) memberPayload.fullName = member.fullName || null
+
+        const { error: membersError } = await supabase
+          .from('members')
+          .upsert([memberPayload], { onConflict: 'id' })
+        if (membersError) {
+          console.error('[Webhook Trello] Erro ao upsert em members:', membersError)
         }
+      } catch (e) {
+        console.error('[Webhook Trello] Falha ao upsert em members:', e)
       }
     }
 
@@ -316,13 +337,19 @@ export async function POST(request: Request) {
 
       // Tentar incluir board_id se existir na tabela
       let updatePayload: Record<string, any> = { ...updateBase }
+      // Atender schemas que exigem trello_id NOT NULL
+      if (cardsHasTrelloId && card.id) {
+        updatePayload.trello_id = card.id
+      }
       if (cardsHasBoardId && boardId) {
         updatePayload.board_id = boardId
       }
       let { error: cardsError } = await supabase.from('cards').upsert([updatePayload], { onConflict: 'id' })
-      if (cardsError && cardsHasBoardId) {
-        // Fallback: tenta sem board_id se houve erro relacionado a colunas
-        const { error: cardsErrorFallback } = await supabase.from('cards').upsert([updateBase], { onConflict: 'id' })
+      if (cardsError && (cardsHasBoardId || cardsHasTrelloId)) {
+        // Fallback: tenta sem board_id, mas mantendo trello_id se existir
+        const fallback: Record<string, any> = { ...updateBase }
+        if (cardsHasTrelloId && card.id) fallback.trello_id = card.id
+        const { error: cardsErrorFallback } = await supabase.from('cards').upsert([fallback], { onConflict: 'id' })
         if (cardsErrorFallback) {
           console.error('[Webhook Trello] Erro ao upsert em cards (fallback também falhou):', cardsErrorFallback, { update: updateBase })
         }
