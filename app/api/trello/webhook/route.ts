@@ -260,6 +260,9 @@ export async function POST(request: Request) {
     const membersHasFullNameCamel = await tableHasColumn(supabase, 'members', 'fullName')
     const movementsHasFromListName = await tableHasColumn(supabase, 'card_movements', 'from_list_name')
     const movementsHasToListName = await tableHasColumn(supabase, 'card_movements', 'to_list_name')
+    const movementsHasMemberId = await tableHasColumn(supabase, 'card_movements', 'member_id')
+    const movementsHasMemberUsername = await tableHasColumn(supabase, 'card_movements', 'member_username')
+    const movementsHasMemberFullname = await tableHasColumn(supabase, 'card_movements', 'member_fullname')
     const movementsHasBoardId = await tableHasColumn(supabase, 'card_movements', 'board_id')
     const movementsHasMovedByMember = await tableHasColumn(supabase, 'card_movements', 'moved_by_member_id')
 
@@ -456,9 +459,9 @@ export async function POST(request: Request) {
         if (movementsHasFromListName && listFrom?.name) movementBase.from_list_name = listFrom.name
         if (listTo?.id) movementBase.to_list_id = listTo.id
         if (movementsHasToListName && listTo?.name) movementBase.to_list_name = listTo.name
-        if (member?.id) movementBase.member_id = member.id
-        if (member?.username) movementBase.member_username = member.username
-        if (member?.fullName) movementBase.member_fullname = member.fullName
+        if (movementsHasMemberId && member?.id) movementBase.member_id = member.id
+        if (movementsHasMemberUsername && member?.username) movementBase.member_username = member.username
+        if (movementsHasMemberFullname && member?.fullName) movementBase.member_fullname = member.fullName
         let movementPayload: Record<string, any> = { ...movementBase }
         if (movementsHasBoardId && boardUuidForFk) movementPayload.board_id = boardUuidForFk
         if (movementsHasMovedByMember && member?.id) movementPayload.moved_by_member_id = member.id
