@@ -1,0 +1,4466 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "",
+    "title": "standard public schema",
+    "version": "12.2.3 (519615d)"
+  },
+  "host": "hsdfmwzkgpcyyzcginib.supabase.co:443",
+  "basePath": "/",
+  "schemes": [
+    "https"
+  ],
+  "consumes": [
+    "application/json",
+    "application/vnd.pgrst.object+json;nulls=stripped",
+    "application/vnd.pgrst.object+json",
+    "text/csv"
+  ],
+  "produces": [
+    "application/json",
+    "application/vnd.pgrst.object+json;nulls=stripped",
+    "application/vnd.pgrst.object+json",
+    "text/csv"
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "produces": [
+          "application/openapi+json",
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "summary": "OpenAPI description (this document)",
+        "tags": [
+          "Introspection"
+        ]
+      }
+    },
+    "/lists": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.lists.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.lists.trello_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.lists.board_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.lists.name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.lists.pos"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.lists.closed"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.lists.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.lists.updated_at"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/lists"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "lists"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.lists"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "lists"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.lists.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.lists.trello_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.lists.board_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.lists.name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.lists.pos"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.lists.closed"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.lists.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.lists.updated_at"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "lists"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.lists.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.lists.trello_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.lists.board_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.lists.name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.lists.pos"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.lists.closed"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.lists.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.lists.updated_at"
+          },
+          {
+            "$ref": "#/parameters/body.lists"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "lists"
+        ]
+      }
+    },
+    "/card_members": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.card_members.card_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_members.member_id"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/card_members"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "card_members"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.card_members"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "card_members"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.card_members.card_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_members.member_id"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "card_members"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.card_members.card_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_members.member_id"
+          },
+          {
+            "$ref": "#/parameters/body.card_members"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "card_members"
+        ]
+      }
+    },
+    "/dashboard_list_pivot": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.list_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.list_position"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.total_cards"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Venda e Compra"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Procuração"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura Pública de Inventário e Partilha"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Doação"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Ata Notarial para Usucapião"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Procuração"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Sobrepartilha"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Divórcio"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Testamento"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Retificação e Ratificação"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Nomeação de inventariante"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Inventário e Partilha"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Confissão de Dívida"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Dação em pagamento"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Declaração de União Estável"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Compra e Venda"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Divórcio Direto"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura Pública de Inventário e Partilha de Bens"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Ata de Retificativa"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Inventário"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Venda e Compra com alienação fiduciária"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura Pública de Inventário e Adjudicação"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Permuta"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Venda e Compra com cláusula resolutiva"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura Pública de Cessão de Direitos Creditórios"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Revogação de Procuração"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de procuração"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura Pública de Confissão de Dívida"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Doação com Reserva de Usufruto"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Ata Notarial"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Ata Retificativa"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Reconhecimento e Dissolução de União Estável"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Restabelecimento de Sociedade Conjugal"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Declaração de união estável"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Não definido"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Total Classificados"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Percentual Classificados"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/dashboard_list_pivot"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "dashboard_list_pivot"
+        ]
+      }
+    },
+    "/dashboard_list_breakdown": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_breakdown.list_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_breakdown.list_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_breakdown.list_position"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_breakdown.total_cards_in_list"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_breakdown.unique_act_types"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_breakdown.classified_cards"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_breakdown.unclassified_cards"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_breakdown.completion_percentage"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_breakdown.act_type_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_breakdown.cards_count"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_breakdown.total_value"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/dashboard_list_breakdown"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "dashboard_list_breakdown"
+        ]
+      }
+    },
+    "/boards": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.boards.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.boards.trello_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.boards.name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.boards.url"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.boards.created_at"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/boards"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "boards"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.boards"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "boards"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.boards.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.boards.trello_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.boards.name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.boards.url"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.boards.created_at"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "boards"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.boards.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.boards.trello_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.boards.name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.boards.url"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.boards.created_at"
+          },
+          {
+            "$ref": "#/parameters/body.boards"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "boards"
+        ]
+      }
+    },
+    "/labels": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.labels.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.labels.trello_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.labels.board_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.labels.name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.labels.color"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.labels.created_at"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/labels"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "labels"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.labels"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "labels"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.labels.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.labels.trello_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.labels.board_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.labels.name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.labels.color"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.labels.created_at"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "labels"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.labels.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.labels.trello_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.labels.board_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.labels.name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.labels.color"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.labels.created_at"
+          },
+          {
+            "$ref": "#/parameters/body.labels"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "labels"
+        ]
+      }
+    },
+    "/dashboard_lists": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_lists.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_lists.name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_lists.position"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_lists.total_cards"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_lists.cards_with_act_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_lists.cards_without_act_type"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/dashboard_lists"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "dashboard_lists"
+        ]
+      }
+    },
+    "/webhook_events": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.webhook_events.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.webhook_events.board_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.webhook_events.trello_action_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.webhook_events.action_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.webhook_events.payload"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.webhook_events.received_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.webhook_events.processed_at"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/webhook_events"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "webhook_events"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.webhook_events"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "webhook_events"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.webhook_events.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.webhook_events.board_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.webhook_events.trello_action_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.webhook_events.action_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.webhook_events.payload"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.webhook_events.received_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.webhook_events.processed_at"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "webhook_events"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.webhook_events.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.webhook_events.board_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.webhook_events.trello_action_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.webhook_events.action_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.webhook_events.payload"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.webhook_events.received_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.webhook_events.processed_at"
+          },
+          {
+            "$ref": "#/parameters/body.webhook_events"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "webhook_events"
+        ]
+      }
+    },
+    "/dashboard_list_summary": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_summary.list_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_summary.list_position"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_summary.total_cards"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_summary.classified_cards"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_summary.unclassified_cards"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_summary.unique_act_types"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_summary.completion_percentage"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_list_summary.status"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/dashboard_list_summary"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "dashboard_list_summary"
+        ]
+      }
+    },
+    "/card_labels": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.card_labels.card_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_labels.label_id"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/card_labels"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "card_labels"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.card_labels"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "card_labels"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.card_labels.card_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_labels.label_id"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "card_labels"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.card_labels.card_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_labels.label_id"
+          },
+          {
+            "$ref": "#/parameters/body.card_labels"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "card_labels"
+        ]
+      }
+    },
+    "/cards": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.cards.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.trello_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.board_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.current_list_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.current_list_trello_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.description"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.url"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.protocol_number"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.is_closed"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.due_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.received_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.received_at_text"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.clerk_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.act_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.act_value"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.act_value_text"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.clerk_email"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.reconference"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.created_by_member_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.updated_at"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/cards"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "cards"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.cards"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "cards"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.cards.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.trello_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.board_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.current_list_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.current_list_trello_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.description"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.url"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.protocol_number"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.is_closed"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.due_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.received_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.received_at_text"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.clerk_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.act_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.act_value"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.act_value_text"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.clerk_email"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.reconference"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.created_by_member_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.updated_at"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "cards"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.cards.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.trello_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.board_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.current_list_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.current_list_trello_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.description"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.url"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.protocol_number"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.is_closed"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.due_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.received_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.received_at_text"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.clerk_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.act_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.act_value"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.act_value_text"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.clerk_email"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.reconference"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.created_by_member_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.created_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.cards.updated_at"
+          },
+          {
+            "$ref": "#/parameters/body.cards"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "cards"
+        ]
+      }
+    },
+    "/dashboard_stats": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_stats.data_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_stats.data"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/dashboard_stats"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "dashboard_stats"
+        ]
+      }
+    },
+    "/dashboard_total_cards": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_total_cards.total_cards"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_total_cards.cards_with_act_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_total_cards.cards_without_act_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_total_cards.cards_with_clerk"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_total_cards.cards_with_value"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_total_cards.total_value"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_total_cards.cards_needing_reconference"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/dashboard_total_cards"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "dashboard_total_cards"
+        ]
+      }
+    },
+    "/dashboard_act_types": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_act_types.name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_act_types.total_count"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.dashboard_act_types.total_value"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/dashboard_act_types"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "dashboard_act_types"
+        ]
+      }
+    },
+    "/card_movements": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.card_movements.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_movements.card_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_movements.board_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_movements.from_list_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_movements.to_list_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_movements.moved_by_member_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_movements.moved_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_movements.trello_action_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_movements.occurred_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_movements.created_at"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/card_movements"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "card_movements"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.card_movements"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "card_movements"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.card_movements.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_movements.card_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_movements.board_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_movements.from_list_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_movements.to_list_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_movements.moved_by_member_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_movements.moved_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_movements.trello_action_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_movements.occurred_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_movements.created_at"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "card_movements"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.card_movements.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_movements.card_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_movements.board_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_movements.from_list_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_movements.to_list_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_movements.moved_by_member_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_movements.moved_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_movements.trello_action_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_movements.occurred_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_movements.created_at"
+          },
+          {
+            "$ref": "#/parameters/body.card_movements"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "card_movements"
+        ]
+      }
+    },
+    "/card_events": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.card_events.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.trello_action_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.action_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.raw_action_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.card_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.card_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.board_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.board_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.list_from_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.list_from_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.list_to_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.list_to_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.member_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.member_username"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.member_fullname"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.occurred_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.payload_json"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.created_at"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/card_events"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "card_events"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.card_events"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "card_events"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.card_events.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.trello_action_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.action_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.raw_action_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.card_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.card_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.board_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.board_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.list_from_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.list_from_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.list_to_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.list_to_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.member_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.member_username"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.member_fullname"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.occurred_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.payload_json"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.created_at"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "card_events"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.card_events.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.trello_action_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.action_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.raw_action_type"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.card_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.card_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.board_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.board_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.list_from_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.list_from_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.list_to_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.list_to_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.member_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.member_username"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.member_fullname"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.occurred_at"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.payload_json"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.card_events.created_at"
+          },
+          {
+            "$ref": "#/parameters/body.card_events"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "card_events"
+        ]
+      }
+    },
+    "/members": {
+      "get": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.members.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.members.trello_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.members.username"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.members.full_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.members.email"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.members.created_at"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/order"
+          },
+          {
+            "$ref": "#/parameters/range"
+          },
+          {
+            "$ref": "#/parameters/rangeUnit"
+          },
+          {
+            "$ref": "#/parameters/offset"
+          },
+          {
+            "$ref": "#/parameters/limit"
+          },
+          {
+            "$ref": "#/parameters/preferCount"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "items": {
+                "$ref": "#/definitions/members"
+              },
+              "type": "array"
+            }
+          },
+          "206": {
+            "description": "Partial Content"
+          }
+        },
+        "tags": [
+          "members"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.members"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "members"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.members.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.members.trello_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.members.username"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.members.full_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.members.email"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.members.created_at"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "members"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.members.id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.members.trello_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.members.username"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.members.full_name"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.members.email"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.members.created_at"
+          },
+          {
+            "$ref": "#/parameters/body.members"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "members"
+        ]
+      }
+    },
+    "/rpc/backfill_card_list_id": {
+      "get": {
+        "parameters": [
+          {
+            "format": "uuid",
+            "in": "query",
+            "name": "p_board_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) backfill_card_list_id"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "args",
+            "required": true,
+            "schema": {
+              "properties": {
+                "p_board_id": {
+                  "format": "uuid",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "p_board_id"
+              ],
+              "type": "object"
+            }
+          },
+          {
+            "$ref": "#/parameters/preferParams"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) backfill_card_list_id"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "lists": {
+      "required": [
+        "id",
+        "trello_id",
+        "board_id",
+        "name",
+        "closed",
+        "created_at"
+      ],
+      "properties": {
+        "id": {
+          "default": "gen_random_uuid()",
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "text",
+          "type": "string"
+        },
+        "trello_id": {
+          "format": "text",
+          "type": "string"
+        },
+        "board_id": {
+          "description": "Note:\nThis is a Foreign Key to `boards.id`.<fk table='boards' column='id'/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "name": {
+          "format": "text",
+          "type": "string"
+        },
+        "pos": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "closed": {
+          "default": false,
+          "format": "boolean",
+          "type": "boolean"
+        },
+        "created_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "updated_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "card_members": {
+      "required": [
+        "card_id",
+        "member_id"
+      ],
+      "properties": {
+        "card_id": {
+          "description": "Note:\nThis is a Primary Key.<pk/>\nThis is a Foreign Key to `cards.id`.<fk table='cards' column='id'/>",
+          "format": "text",
+          "type": "string"
+        },
+        "member_id": {
+          "description": "Note:\nThis is a Primary Key.<pk/>\nThis is a Foreign Key to `members.id`.<fk table='members' column='id'/>",
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "dashboard_list_pivot": {
+      "properties": {
+        "list_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "list_position": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "total_cards": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Escritura de Venda e Compra": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Procuração": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Escritura Pública de Inventário e Partilha": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Escritura de Doação": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Ata Notarial para Usucapião": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Escritura de Procuração": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Escritura de Sobrepartilha": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Escritura de Divórcio": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Testamento": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Retificação e Ratificação": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Escritura de Nomeação de inventariante": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Escritura de Inventário e Partilha": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Escritura de Confissão de Dívida": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Escritura de Dação em pagamento": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Declaração de União Estável": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Escritura de Compra e Venda": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Escritura de Divórcio Direto": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Escritura Pública de Inventário e Partilha de Bens": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Ata de Retificativa": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Escritura de Inventário": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Escritura de Venda e Compra com alienação fiduciária": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Escritura Pública de Inventário e Adjudicação": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Escritura de Permuta": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Escritura de Venda e Compra com cláusula resolutiva": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Escritura Pública de Cessão de Direitos Creditórios": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Revogação de Procuração": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Escritura de procuração": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Escritura Pública de Confissão de Dívida": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Escritura de Doação com Reserva de Usufruto": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Ata Notarial": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Ata Retificativa": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Escritura de Reconhecimento e Dissolução de União Estável": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Escritura de Restabelecimento de Sociedade Conjugal": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Escritura de Declaração de união estável": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Não definido": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Total Classificados": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "Percentual Classificados": {
+          "format": "numeric",
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "dashboard_list_breakdown": {
+      "properties": {
+        "list_id": {
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "text",
+          "type": "string"
+        },
+        "list_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "list_position": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "total_cards_in_list": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "unique_act_types": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "classified_cards": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "unclassified_cards": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "completion_percentage": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "act_type_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "cards_count": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "total_value": {
+          "format": "numeric",
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "boards": {
+      "required": [
+        "id",
+        "trello_id",
+        "name",
+        "created_at"
+      ],
+      "properties": {
+        "id": {
+          "default": "gen_random_uuid()",
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "trello_id": {
+          "format": "text",
+          "type": "string"
+        },
+        "name": {
+          "format": "text",
+          "type": "string"
+        },
+        "url": {
+          "format": "text",
+          "type": "string"
+        },
+        "created_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "labels": {
+      "required": [
+        "id",
+        "trello_id",
+        "board_id",
+        "created_at"
+      ],
+      "properties": {
+        "id": {
+          "default": "gen_random_uuid()",
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "trello_id": {
+          "format": "text",
+          "type": "string"
+        },
+        "board_id": {
+          "description": "Note:\nThis is a Foreign Key to `boards.id`.<fk table='boards' column='id'/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "name": {
+          "format": "text",
+          "type": "string"
+        },
+        "color": {
+          "format": "text",
+          "type": "string"
+        },
+        "created_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "dashboard_lists": {
+      "properties": {
+        "id": {
+          "format": "text",
+          "type": "string"
+        },
+        "name": {
+          "format": "text",
+          "type": "string"
+        },
+        "position": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "total_cards": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "cards_with_act_type": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "cards_without_act_type": {
+          "format": "bigint",
+          "type": "integer"
+        }
+      },
+      "type": "object"
+    },
+    "webhook_events": {
+      "required": [
+        "id",
+        "payload",
+        "received_at"
+      ],
+      "properties": {
+        "id": {
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "bigint",
+          "type": "integer"
+        },
+        "board_id": {
+          "description": "Note:\nThis is a Foreign Key to `boards.id`.<fk table='boards' column='id'/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "trello_action_id": {
+          "format": "text",
+          "type": "string"
+        },
+        "action_type": {
+          "format": "text",
+          "type": "string"
+        },
+        "payload": {
+          "format": "jsonb"
+        },
+        "received_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "processed_at": {
+          "format": "timestamp with time zone",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "dashboard_list_summary": {
+      "properties": {
+        "list_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "list_position": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "total_cards": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "classified_cards": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "unclassified_cards": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "unique_act_types": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "completion_percentage": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "status": {
+          "format": "text",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "card_labels": {
+      "required": [
+        "card_id",
+        "label_id"
+      ],
+      "properties": {
+        "card_id": {
+          "description": "Note:\nThis is a Primary Key.<pk/>\nThis is a Foreign Key to `cards.id`.<fk table='cards' column='id'/>",
+          "format": "text",
+          "type": "string"
+        },
+        "label_id": {
+          "description": "Note:\nThis is a Primary Key.<pk/>\nThis is a Foreign Key to `labels.id`.<fk table='labels' column='id'/>",
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "cards": {
+      "required": [
+        "id",
+        "trello_id",
+        "board_id",
+        "is_closed",
+        "created_at"
+      ],
+      "properties": {
+        "id": {
+          "default": "gen_random_uuid()",
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "text",
+          "type": "string"
+        },
+        "trello_id": {
+          "format": "text",
+          "type": "string"
+        },
+        "board_id": {
+          "description": "Note:\nThis is a Foreign Key to `boards.id`.<fk table='boards' column='id'/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "current_list_id": {
+          "format": "text",
+          "type": "string"
+        },
+        "current_list_trello_id": {
+          "format": "text",
+          "type": "string"
+        },
+        "name": {
+          "format": "text",
+          "type": "string"
+        },
+        "description": {
+          "format": "text",
+          "type": "string"
+        },
+        "url": {
+          "format": "text",
+          "type": "string"
+        },
+        "protocol_number": {
+          "format": "text",
+          "type": "string"
+        },
+        "is_closed": {
+          "default": false,
+          "format": "boolean",
+          "type": "boolean"
+        },
+        "due_at": {
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "received_at": {
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "received_at_text": {
+          "format": "text",
+          "type": "string"
+        },
+        "clerk_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "act_type": {
+          "format": "text",
+          "type": "string"
+        },
+        "act_value": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "act_value_text": {
+          "format": "text",
+          "type": "string"
+        },
+        "clerk_email": {
+          "format": "text",
+          "type": "string"
+        },
+        "reconference": {
+          "format": "boolean",
+          "type": "boolean"
+        },
+        "created_by_member_id": {
+          "description": "Note:\nThis is a Foreign Key to `members.id`.<fk table='members' column='id'/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "created_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "timestamp with time zone",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "dashboard_stats": {
+      "properties": {
+        "data_type": {
+          "format": "text",
+          "type": "string"
+        },
+        "data": {
+          "format": "json"
+        }
+      },
+      "type": "object"
+    },
+    "dashboard_total_cards": {
+      "properties": {
+        "total_cards": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "cards_with_act_type": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "cards_without_act_type": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "cards_with_clerk": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "cards_with_value": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "total_value": {
+          "format": "numeric",
+          "type": "number"
+        },
+        "cards_needing_reconference": {
+          "format": "bigint",
+          "type": "integer"
+        }
+      },
+      "type": "object"
+    },
+    "dashboard_act_types": {
+      "properties": {
+        "name": {
+          "format": "text",
+          "type": "string"
+        },
+        "total_count": {
+          "format": "bigint",
+          "type": "integer"
+        },
+        "total_value": {
+          "format": "numeric",
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "card_movements": {
+      "required": [
+        "id",
+        "card_id",
+        "board_id",
+        "moved_at"
+      ],
+      "properties": {
+        "id": {
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "bigint",
+          "type": "integer"
+        },
+        "card_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "board_id": {
+          "description": "Note:\nThis is a Foreign Key to `boards.id`.<fk table='boards' column='id'/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "from_list_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "to_list_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "moved_by_member_id": {
+          "description": "Note:\nThis is a Foreign Key to `members.id`.<fk table='members' column='id'/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "moved_at": {
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "trello_action_id": {
+          "format": "text",
+          "type": "string"
+        },
+        "occurred_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "created_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "card_events": {
+      "required": [
+        "id",
+        "action_type",
+        "occurred_at",
+        "created_at"
+      ],
+      "properties": {
+        "id": {
+          "default": "gen_random_uuid()",
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "trello_action_id": {
+          "format": "text",
+          "type": "string"
+        },
+        "action_type": {
+          "format": "text",
+          "type": "string"
+        },
+        "raw_action_type": {
+          "format": "text",
+          "type": "string"
+        },
+        "card_id": {
+          "format": "text",
+          "type": "string"
+        },
+        "card_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "board_id": {
+          "format": "text",
+          "type": "string"
+        },
+        "board_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "list_from_id": {
+          "format": "text",
+          "type": "string"
+        },
+        "list_from_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "list_to_id": {
+          "format": "text",
+          "type": "string"
+        },
+        "list_to_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "member_id": {
+          "format": "text",
+          "type": "string"
+        },
+        "member_username": {
+          "format": "text",
+          "type": "string"
+        },
+        "member_fullname": {
+          "format": "text",
+          "type": "string"
+        },
+        "occurred_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        },
+        "payload_json": {
+          "format": "jsonb"
+        },
+        "created_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "members": {
+      "required": [
+        "id",
+        "trello_id",
+        "username",
+        "created_at"
+      ],
+      "properties": {
+        "id": {
+          "default": "gen_random_uuid()",
+          "description": "Note:\nThis is a Primary Key.<pk/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "trello_id": {
+          "format": "text",
+          "type": "string"
+        },
+        "username": {
+          "format": "text",
+          "type": "string"
+        },
+        "full_name": {
+          "format": "text",
+          "type": "string"
+        },
+        "email": {
+          "format": "text",
+          "type": "string"
+        },
+        "created_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "parameters": {
+    "preferParams": {
+      "name": "Prefer",
+      "description": "Preference",
+      "required": false,
+      "enum": [
+        "params=single-object"
+      ],
+      "in": "header",
+      "type": "string"
+    },
+    "preferReturn": {
+      "name": "Prefer",
+      "description": "Preference",
+      "required": false,
+      "enum": [
+        "return=representation",
+        "return=minimal",
+        "return=none"
+      ],
+      "in": "header",
+      "type": "string"
+    },
+    "preferCount": {
+      "name": "Prefer",
+      "description": "Preference",
+      "required": false,
+      "enum": [
+        "count=none"
+      ],
+      "in": "header",
+      "type": "string"
+    },
+    "preferPost": {
+      "name": "Prefer",
+      "description": "Preference",
+      "required": false,
+      "enum": [
+        "return=representation",
+        "return=minimal",
+        "return=none",
+        "resolution=ignore-duplicates",
+        "resolution=merge-duplicates"
+      ],
+      "in": "header",
+      "type": "string"
+    },
+    "select": {
+      "name": "select",
+      "description": "Filtering Columns",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "on_conflict": {
+      "name": "on_conflict",
+      "description": "On Conflict",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "order": {
+      "name": "order",
+      "description": "Ordering",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "range": {
+      "name": "Range",
+      "description": "Limiting and Pagination",
+      "required": false,
+      "in": "header",
+      "type": "string"
+    },
+    "rangeUnit": {
+      "name": "Range-Unit",
+      "description": "Limiting and Pagination",
+      "required": false,
+      "default": "items",
+      "in": "header",
+      "type": "string"
+    },
+    "offset": {
+      "name": "offset",
+      "description": "Limiting and Pagination",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "limit": {
+      "name": "limit",
+      "description": "Limiting and Pagination",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.lists": {
+      "name": "lists",
+      "description": "lists",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/lists"
+      }
+    },
+    "rowFilter.lists.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.lists.trello_id": {
+      "name": "trello_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.lists.board_id": {
+      "name": "board_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.lists.name": {
+      "name": "name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.lists.pos": {
+      "name": "pos",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.lists.closed": {
+      "name": "closed",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.lists.created_at": {
+      "name": "created_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.lists.updated_at": {
+      "name": "updated_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.card_members": {
+      "name": "card_members",
+      "description": "card_members",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/card_members"
+      }
+    },
+    "rowFilter.card_members.card_id": {
+      "name": "card_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.card_members.member_id": {
+      "name": "member_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.dashboard_list_pivot": {
+      "name": "dashboard_list_pivot",
+      "description": "dashboard_list_pivot",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/dashboard_list_pivot"
+      }
+    },
+    "rowFilter.dashboard_list_pivot.list_name": {
+      "name": "list_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.list_position": {
+      "name": "list_position",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.total_cards": {
+      "name": "total_cards",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Escritura de Venda e Compra": {
+      "name": "Escritura de Venda e Compra",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Procuração": {
+      "name": "Procuração",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Escritura Pública de Inventário e Partilha": {
+      "name": "Escritura Pública de Inventário e Partilha",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Escritura de Doação": {
+      "name": "Escritura de Doação",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Ata Notarial para Usucapião": {
+      "name": "Ata Notarial para Usucapião",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Escritura de Procuração": {
+      "name": "Escritura de Procuração",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Escritura de Sobrepartilha": {
+      "name": "Escritura de Sobrepartilha",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Escritura de Divórcio": {
+      "name": "Escritura de Divórcio",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Testamento": {
+      "name": "Testamento",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Retificação e Ratificação": {
+      "name": "Retificação e Ratificação",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Escritura de Nomeação de inventariante": {
+      "name": "Escritura de Nomeação de inventariante",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Escritura de Inventário e Partilha": {
+      "name": "Escritura de Inventário e Partilha",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Escritura de Confissão de Dívida": {
+      "name": "Escritura de Confissão de Dívida",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Escritura de Dação em pagamento": {
+      "name": "Escritura de Dação em pagamento",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Declaração de União Estável": {
+      "name": "Declaração de União Estável",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Escritura de Compra e Venda": {
+      "name": "Escritura de Compra e Venda",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Escritura de Divórcio Direto": {
+      "name": "Escritura de Divórcio Direto",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Escritura Pública de Inventário e Partilha de Bens": {
+      "name": "Escritura Pública de Inventário e Partilha de Bens",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Ata de Retificativa": {
+      "name": "Ata de Retificativa",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Escritura de Inventário": {
+      "name": "Escritura de Inventário",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Escritura de Venda e Compra com alienação fiduciária": {
+      "name": "Escritura de Venda e Compra com alienação fiduciária",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Escritura Pública de Inventário e Adjudicação": {
+      "name": "Escritura Pública de Inventário e Adjudicação",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Escritura de Permuta": {
+      "name": "Escritura de Permuta",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Escritura de Venda e Compra com cláusula resolutiva": {
+      "name": "Escritura de Venda e Compra com cláusula resolutiva",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Escritura Pública de Cessão de Direitos Creditórios": {
+      "name": "Escritura Pública de Cessão de Direitos Creditórios",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Revogação de Procuração": {
+      "name": "Revogação de Procuração",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Escritura de procuração": {
+      "name": "Escritura de procuração",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Escritura Pública de Confissão de Dívida": {
+      "name": "Escritura Pública de Confissão de Dívida",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Escritura de Doação com Reserva de Usufruto": {
+      "name": "Escritura de Doação com Reserva de Usufruto",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Ata Notarial": {
+      "name": "Ata Notarial",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Ata Retificativa": {
+      "name": "Ata Retificativa",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Escritura de Reconhecimento e Dissolução de União Estável": {
+      "name": "Escritura de Reconhecimento e Dissolução de União Estável",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Escritura de Restabelecimento de Sociedade Conjugal": {
+      "name": "Escritura de Restabelecimento de Sociedade Conjugal",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Escritura de Declaração de união estável": {
+      "name": "Escritura de Declaração de união estável",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Não definido": {
+      "name": "Não definido",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Total Classificados": {
+      "name": "Total Classificados",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_pivot.Percentual Classificados": {
+      "name": "Percentual Classificados",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.dashboard_list_breakdown": {
+      "name": "dashboard_list_breakdown",
+      "description": "dashboard_list_breakdown",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/dashboard_list_breakdown"
+      }
+    },
+    "rowFilter.dashboard_list_breakdown.list_id": {
+      "name": "list_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_breakdown.list_name": {
+      "name": "list_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_breakdown.list_position": {
+      "name": "list_position",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_breakdown.total_cards_in_list": {
+      "name": "total_cards_in_list",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_breakdown.unique_act_types": {
+      "name": "unique_act_types",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_breakdown.classified_cards": {
+      "name": "classified_cards",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_breakdown.unclassified_cards": {
+      "name": "unclassified_cards",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_breakdown.completion_percentage": {
+      "name": "completion_percentage",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_breakdown.act_type_name": {
+      "name": "act_type_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_breakdown.cards_count": {
+      "name": "cards_count",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_breakdown.total_value": {
+      "name": "total_value",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.boards": {
+      "name": "boards",
+      "description": "boards",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/boards"
+      }
+    },
+    "rowFilter.boards.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.boards.trello_id": {
+      "name": "trello_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.boards.name": {
+      "name": "name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.boards.url": {
+      "name": "url",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.boards.created_at": {
+      "name": "created_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.labels": {
+      "name": "labels",
+      "description": "labels",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/labels"
+      }
+    },
+    "rowFilter.labels.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.labels.trello_id": {
+      "name": "trello_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.labels.board_id": {
+      "name": "board_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.labels.name": {
+      "name": "name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.labels.color": {
+      "name": "color",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.labels.created_at": {
+      "name": "created_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.dashboard_lists": {
+      "name": "dashboard_lists",
+      "description": "dashboard_lists",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/dashboard_lists"
+      }
+    },
+    "rowFilter.dashboard_lists.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_lists.name": {
+      "name": "name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_lists.position": {
+      "name": "position",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_lists.total_cards": {
+      "name": "total_cards",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_lists.cards_with_act_type": {
+      "name": "cards_with_act_type",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_lists.cards_without_act_type": {
+      "name": "cards_without_act_type",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.webhook_events": {
+      "name": "webhook_events",
+      "description": "webhook_events",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/webhook_events"
+      }
+    },
+    "rowFilter.webhook_events.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.webhook_events.board_id": {
+      "name": "board_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.webhook_events.trello_action_id": {
+      "name": "trello_action_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.webhook_events.action_type": {
+      "name": "action_type",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.webhook_events.payload": {
+      "name": "payload",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.webhook_events.received_at": {
+      "name": "received_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.webhook_events.processed_at": {
+      "name": "processed_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.dashboard_list_summary": {
+      "name": "dashboard_list_summary",
+      "description": "dashboard_list_summary",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/dashboard_list_summary"
+      }
+    },
+    "rowFilter.dashboard_list_summary.list_name": {
+      "name": "list_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_summary.list_position": {
+      "name": "list_position",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_summary.total_cards": {
+      "name": "total_cards",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_summary.classified_cards": {
+      "name": "classified_cards",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_summary.unclassified_cards": {
+      "name": "unclassified_cards",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_summary.unique_act_types": {
+      "name": "unique_act_types",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_summary.completion_percentage": {
+      "name": "completion_percentage",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_list_summary.status": {
+      "name": "status",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.card_labels": {
+      "name": "card_labels",
+      "description": "card_labels",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/card_labels"
+      }
+    },
+    "rowFilter.card_labels.card_id": {
+      "name": "card_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.card_labels.label_id": {
+      "name": "label_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.cards": {
+      "name": "cards",
+      "description": "cards",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/cards"
+      }
+    },
+    "rowFilter.cards.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.cards.trello_id": {
+      "name": "trello_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.cards.board_id": {
+      "name": "board_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.cards.current_list_id": {
+      "name": "current_list_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.cards.current_list_trello_id": {
+      "name": "current_list_trello_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.cards.name": {
+      "name": "name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.cards.description": {
+      "name": "description",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.cards.url": {
+      "name": "url",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.cards.protocol_number": {
+      "name": "protocol_number",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.cards.is_closed": {
+      "name": "is_closed",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.cards.due_at": {
+      "name": "due_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.cards.received_at": {
+      "name": "received_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.cards.received_at_text": {
+      "name": "received_at_text",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.cards.clerk_name": {
+      "name": "clerk_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.cards.act_type": {
+      "name": "act_type",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.cards.act_value": {
+      "name": "act_value",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.cards.act_value_text": {
+      "name": "act_value_text",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.cards.clerk_email": {
+      "name": "clerk_email",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.cards.reconference": {
+      "name": "reconference",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.cards.created_by_member_id": {
+      "name": "created_by_member_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.cards.created_at": {
+      "name": "created_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.cards.updated_at": {
+      "name": "updated_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.dashboard_stats": {
+      "name": "dashboard_stats",
+      "description": "dashboard_stats",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/dashboard_stats"
+      }
+    },
+    "rowFilter.dashboard_stats.data_type": {
+      "name": "data_type",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_stats.data": {
+      "name": "data",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.dashboard_total_cards": {
+      "name": "dashboard_total_cards",
+      "description": "dashboard_total_cards",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/dashboard_total_cards"
+      }
+    },
+    "rowFilter.dashboard_total_cards.total_cards": {
+      "name": "total_cards",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_total_cards.cards_with_act_type": {
+      "name": "cards_with_act_type",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_total_cards.cards_without_act_type": {
+      "name": "cards_without_act_type",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_total_cards.cards_with_clerk": {
+      "name": "cards_with_clerk",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_total_cards.cards_with_value": {
+      "name": "cards_with_value",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_total_cards.total_value": {
+      "name": "total_value",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_total_cards.cards_needing_reconference": {
+      "name": "cards_needing_reconference",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.dashboard_act_types": {
+      "name": "dashboard_act_types",
+      "description": "dashboard_act_types",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/dashboard_act_types"
+      }
+    },
+    "rowFilter.dashboard_act_types.name": {
+      "name": "name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_act_types.total_count": {
+      "name": "total_count",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.dashboard_act_types.total_value": {
+      "name": "total_value",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.card_movements": {
+      "name": "card_movements",
+      "description": "card_movements",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/card_movements"
+      }
+    },
+    "rowFilter.card_movements.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.card_movements.card_id": {
+      "name": "card_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.card_movements.board_id": {
+      "name": "board_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.card_movements.from_list_id": {
+      "name": "from_list_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.card_movements.to_list_id": {
+      "name": "to_list_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.card_movements.moved_by_member_id": {
+      "name": "moved_by_member_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.card_movements.moved_at": {
+      "name": "moved_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.card_movements.trello_action_id": {
+      "name": "trello_action_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.card_movements.occurred_at": {
+      "name": "occurred_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.card_movements.created_at": {
+      "name": "created_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.card_events": {
+      "name": "card_events",
+      "description": "card_events",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/card_events"
+      }
+    },
+    "rowFilter.card_events.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.card_events.trello_action_id": {
+      "name": "trello_action_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.card_events.action_type": {
+      "name": "action_type",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.card_events.raw_action_type": {
+      "name": "raw_action_type",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.card_events.card_id": {
+      "name": "card_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.card_events.card_name": {
+      "name": "card_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.card_events.board_id": {
+      "name": "board_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.card_events.board_name": {
+      "name": "board_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.card_events.list_from_id": {
+      "name": "list_from_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.card_events.list_from_name": {
+      "name": "list_from_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.card_events.list_to_id": {
+      "name": "list_to_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.card_events.list_to_name": {
+      "name": "list_to_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.card_events.member_id": {
+      "name": "member_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.card_events.member_username": {
+      "name": "member_username",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.card_events.member_fullname": {
+      "name": "member_fullname",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.card_events.occurred_at": {
+      "name": "occurred_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.card_events.payload_json": {
+      "name": "payload_json",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.card_events.created_at": {
+      "name": "created_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "body.members": {
+      "name": "members",
+      "description": "members",
+      "required": false,
+      "in": "body",
+      "schema": {
+        "$ref": "#/definitions/members"
+      }
+    },
+    "rowFilter.members.id": {
+      "name": "id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.members.trello_id": {
+      "name": "trello_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.members.username": {
+      "name": "username",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.members.full_name": {
+      "name": "full_name",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.members.email": {
+      "name": "email",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.members.created_at": {
+      "name": "created_at",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    }
+  },
+  "externalDocs": {
+    "description": "PostgREST Documentation",
+    "url": "https://postgrest.org/en/v12/references/api.html"
+  }
+}

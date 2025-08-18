@@ -113,6 +113,52 @@ Conferencia/
 - **CORS**: como o fetch ocorre no servidor (rota API), em geral não há impacto; se mover requisições para o client, poderá exigir configuração do Supabase.
 
 
+### MCP (Model Context Protocol) no Cursor
+
+Configuração oficial via `.cursor/mcp.json` (recomendada pelos DOCs):
+
+- Crie/edite `./.cursor/mcp.json` com o conteúdo abaixo, substituindo os placeholders pelos seus valores reais:
+
+```json
+{
+  "mcpServers": {
+    "supabase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server-supabase@latest",
+        "--read-only",
+        "--project-ref",
+        "<seu-project-ref>"
+      ],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "<seu-personal-access-token>"
+      }
+    },
+    "railway": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@jasontanswe/railway-mcp@latest"
+      ],
+      "env": {
+        "RAILWAY_API_TOKEN": "<seu-railway-api-token>"
+      }
+    }
+  }
+}
+```
+
+Notas importantes:
+- Este arquivo não deve ser commitado com credenciais reais. O repositório já ignora `/.cursor/mcp.json`.
+- Garanta `node`/`npx` no PATH (Windows: abra um terminal e rode `node -v`/`npx -v`).
+- Após salvar o arquivo, reinicie o Cursor ou reabra o projeto para que os MCPs sejam iniciados automaticamente.
+
+Diags rápidos:
+- Se o MCP do Supabase não iniciar, verifique se o `project-ref` está correto e se o `SUPABASE_ACCESS_TOKEN` é válido.
+- Se o MCP da Railway não iniciar, confirme o token em `RAILWAY_API_TOKEN` e conectividade com a API da Railway.
+
+
 ### Webhook do Trello → Supabase (em tempo real)
 
 1. Variáveis de ambiente adicionais (`Conferencia/.env`):

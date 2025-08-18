@@ -1,0 +1,1 @@
+[33m5c3bcf3[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mClean[m[33m, [m[1;31morigin/Clean[m[33m)[m Webhook Trello: validação robusta de assinatura (variantes de URL: canônica/env, request, X-Forwarded-Host/Proto; normalização com/sem barra final)

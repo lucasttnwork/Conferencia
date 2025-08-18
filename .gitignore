@@ -80,3 +80,5 @@ Thumbs.db
 # Tunnels
 tunnel_url.txt
 tunnel_log.txt
+.cursor/mcp.json
+/.cursor/
