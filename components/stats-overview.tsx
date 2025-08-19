@@ -12,12 +12,14 @@ import {
 interface StatsOverviewProps {
   data: {
     total_cards: number
-    cards_with_act_type: number
-    cards_without_act_type: number
-    cards_with_clerk: number
+    cards_with_act_type?: number
+    cards_without_act_type?: number
+    cards_with_clerk?: number
     cards_with_value: number
     total_value: number
-    cards_needing_reconference: number
+    cards_needing_reconference?: number
+    opened_cards?: number
+    archived_cards?: number
   }
 }
 
@@ -28,8 +30,6 @@ export function StatsOverview({ data }: StatsOverviewProps) {
       currency: 'BRL'
     }).format(value)
   }
-
-  const completionRate = Math.round((data.cards_with_act_type / data.total_cards) * 100)
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -49,18 +49,14 @@ export function StatsOverview({ data }: StatsOverviewProps) {
         </div>
       </div>
 
-      {/* Taxa de Completude */}
+      {/* Cards abertos no período */}
       <div className="card animate-float neon-glow">
         <div className="flex items-center justify-between p-6">
           <div className="flex-1">
-            <p className="text-green-300 text-sm font-medium mb-2">Classificados</p>
-            <p className="text-4xl font-bold text-white mb-1">{completionRate}%</p>
-            <p className="text-green-300 text-sm mb-2">{data.cards_with_act_type} de {data.total_cards}</p>
+            <p className="text-green-300 text-sm font-medium mb-2">Cards abertos</p>
+            <p className="text-4xl font-bold text-white mb-1">{(data.opened_cards || 0).toLocaleString('pt-BR')}</p>
             <div className="w-full bg-gray-700 rounded-full h-2">
-              <div 
-                className="bg-gradient-to-r from-green-500 to-green-400 h-2 rounded-full transition-all duration-1000"
-                style={{ width: `${completionRate}%` }}
-              ></div>
+              <div className="bg-gradient-to-r from-green-500 to-green-400 h-2 rounded-full animate-pulse-glow"></div>
             </div>
           </div>
           <div className="p-3 bg-gradient-to-br from-green-500/20 to-green-600/20 rounded-xl border border-green-500/30">
@@ -69,13 +65,13 @@ export function StatsOverview({ data }: StatsOverviewProps) {
         </div>
       </div>
 
-      {/* Pendentes */}
+      {/* Cards arquivados no período */}
       <div className="card animate-float neon-glow">
         <div className="flex items-center justify-between p-6">
           <div className="flex-1">
-            <p className="text-orange-300 text-sm font-medium mb-2">Pendentes</p>
-            <p className="text-4xl font-bold text-white mb-1">{data.cards_without_act_type.toLocaleString('pt-BR')}</p>
-            <p className="text-orange-300 text-sm mb-2">Aguardando classificação</p>
+            <p className="text-orange-300 text-sm font-medium mb-2">Cards arquivados</p>
+            <p className="text-4xl font-bold text-white mb-1">{(data.archived_cards || 0).toLocaleString('pt-BR')}</p>
+            <p className="text-orange-300 text-sm mb-2">Quantidade arquivada no período</p>
             <div className="w-full bg-gray-700 rounded-full h-2">
               <div className="bg-gradient-to-r from-orange-500 to-orange-400 h-2 rounded-full animate-pulse-glow"></div>
             </div>
