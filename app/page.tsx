@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { DashboardHeader } from '@/components/dashboard-header'
 import { StatsOverview } from '@/components/stats-overview'
@@ -157,11 +157,15 @@ export default function DashboardPage() {
     return { fromIso: fromLocal.toISOString(), toIso: toLocal.toISOString() }
   }
 
+  const lastRunRef = useRef<symbol | null>(null)
+
   const fetchDashboardData = async () => {
     try {
       setLoading(true)
       setError(null)
       const range = buildFilter()
+      const runToken = Symbol('dash-fetch')
+      lastRunRef.current = runToken
       const qs = range ? `?from=${encodeURIComponent(range.fromIso)}&to=${encodeURIComponent(range.toIso)}` : ''
       const response = await fetch(`/api/dashboard${qs}`, { cache: 'no-store' })
       if (!response.ok) {
@@ -169,6 +173,7 @@ export default function DashboardPage() {
       }
       
       const result = await response.json()
+      if (lastRunRef.current !== runToken) return
       setData(result)
       setLastUpdated(new Date())
     } catch (err) {

@@ -104,7 +104,21 @@ export async function GET(request: Request) {
     const path = `member_activity?select=occurred_at,trello_action_id,card_id,action_type,member_id,member_username,member_fullname,from_list_id,from_list_name,to_list_id,to_list_name,act_type${queryString}&order=occurred_at.asc`
     const rawRows = (await fetchAll(path)) as any[]
     // Mostrar registros do período para TODOS os cards abertos na janela (não apenas os que têm evento no período)
-    const rows = rawRows.filter((r) => r.card_id && openCardIds.has(r.card_id))
+    // e filtrar somente interações de produtividade (criação ou movimentação real entre listas distintas)
+    const isValidMove = (r: any) => {
+      if (r.action_type !== 'move') return false
+      const fromId = r.from_list_id
+      const toId = r.to_list_id
+      const fromName = r.from_list_name
+      const toName = r.to_list_name
+      if (fromId && toId) return fromId !== toId
+      if (fromName && toName) return fromName !== toName
+      return false
+    }
+    const isProductiveEvent = (r: any) => r.action_type === 'create' || isValidMove(r)
+    const rows = rawRows
+      .filter((r) => r.card_id && openCardIds.has(r.card_id))
+      .filter(isProductiveEvent)
 
     // Aggregations inspired by docs/produtividade_views.md
     type Row = {
@@ -143,9 +157,6 @@ export async function GET(request: Request) {
       agg.total_actions += 1
       if (r.action_type === 'create') agg.created += 1
       else if (r.action_type === 'move') agg.moved += 1
-      else if (r.action_type === 'archive') agg.archived += 1
-      else if (r.action_type === 'unarchive') agg.unarchived += 1
-      else if (r.action_type === 'delete') agg.deleted += 1
       if (r.occurred_at < agg.first_action_at) agg.first_action_at = r.occurred_at
       if (r.occurred_at > agg.last_action_at) agg.last_action_at = r.occurred_at
     }
@@ -179,9 +190,15 @@ export async function GET(request: Request) {
     const flowsKeyMap = new Map<string, any>()
     for (const r of rows as Row[]) {
       if (r.action_type !== 'move') continue
+      // garantir movimentação real entre listas diferentes
+      const fromId = r.from_list_id
+      const toId = r.to_list_id
+      const fromNameRaw = r.from_list_name || r.from_list_id || '—'
+      const toNameRaw = r.to_list_name || r.to_list_id || '—'
+      if ((fromId && toId && fromId === toId) || (!fromId && !toId && fromNameRaw === toNameRaw)) continue
       const memberKey = r.member_id || r.member_username || r.member_fullname || 'desconhecido'
-      const fromName = r.from_list_name || r.from_list_id || '—'
-      const toName = r.to_list_name || r.to_list_id || '—'
+      const fromName = fromNameRaw
+      const toName = toNameRaw
       const act = r.act_type || 'Não definido'
       const compKey = `${memberKey}__${fromName}__${toName}__${act}`
       if (!flowsKeyMap.has(compKey)) {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { SectionNav } from '@/components/section-nav'
 import DatePicker from '@/components/date-picker'
 import PeriodSelect from '@/components/period-select'
@@ -82,12 +82,21 @@ export default function ProdutividadePage() {
     return { fromIso: fromLocal.toISOString(), toIso: toLocal.toISOString() }
   }
 
+  const lastRunRef = useRef<symbol | null>(null)
+
   const fetchData = async () => {
     try {
       setLoading(true)
       setError(null)
       const range = buildFilter()
+      const runToken = Symbol('prod-fetch')
+      lastRunRef.current = runToken
       if (!range) {
+        // Limpa dados para evitar exibição de resultados antigos quando o intervalo personalizado está incompleto
+        setRows([])
+        setOverview(null)
+        setByActType(null)
+        setFlows(null)
         setLoading(false)
         return
       }
@@ -96,6 +105,7 @@ export default function ProdutividadePage() {
       const res = await fetch(`/api/produtividade?${qs.toString()}`, { cache: 'no-store' })
       if (!res.ok) throw new Error('Falha ao carregar produtividade')
       const data = await res.json()
+      if (lastRunRef.current !== runToken) return
       setRows((data.rows || []) as MemberActivityRow[])
       if (data.overview) setOverview(data.overview)
       if (data.byActType) setByActType(data.byActType)

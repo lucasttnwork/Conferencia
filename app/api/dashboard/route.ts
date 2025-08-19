@@ -22,8 +22,6 @@ export async function GET(request: Request) {
     const commonOptions: RequestInit = {
       // Evita qualquer cache do Next.js ou do fetch
       cache: 'no-store' as RequestCache,
-      // @ts-ignore - dica para o Next.js
-      next: { revalidate: 0 },
       headers: {
         'apikey': SUPABASE_ANON_KEY,
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
