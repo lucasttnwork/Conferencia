@@ -66,14 +66,14 @@ export function VisualDistribution({ lists, actTypes }: VisualDistributionProps)
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowActTypes(!showActTypes)}
-                className="p-2 hover:bg-gray-800/50 rounded-lg transition-colors"
+                className="p-2 rounded-full backdrop-blur-2xl bg-white/10 hover:bg-white/15 border border-white/15 shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-colors"
                 title={showActTypes ? 'Ocultar gráfico' : 'Mostrar gráfico'}
               >
                 {showActTypes ? <Eye className="w-4 h-4 text-blue-400" /> : <EyeOff className="w-4 h-4 text-gray-500" />}
               </button>
               <button
                 onClick={() => setExpandedActTypes(!expandedActTypes)}
-                className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-lg border border-blue-500/30 hover:from-blue-600/30 hover:to-purple-600/30 transition-all duration-300"
+                className="flex items-center gap-2 px-3 py-2 rounded-full backdrop-blur-2xl bg-white/10 hover:bg-white/15 border border-white/15 shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-all duration-300"
               >
                 {expandedActTypes ? 'Ver menos' : 'Ver todos'}
                 {expandedActTypes ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -155,14 +155,14 @@ export function VisualDistribution({ lists, actTypes }: VisualDistributionProps)
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowLists(!showLists)}
-                className="p-2 hover:bg-gray-800/50 rounded-lg transition-colors"
+                className="p-2 rounded-full backdrop-blur-2xl bg-white/10 hover:bg-white/15 border border-white/15 shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-colors"
                 title={showLists ? 'Ocultar gráfico' : 'Mostrar gráfico'}
               >
                 {showLists ? <Eye className="w-4 h-4 text-green-400" /> : <EyeOff className="w-4 h-4 text-gray-500" />}
               </button>
               <button
                 onClick={() => setExpandedLists(!expandedLists)}
-                className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-green-600/20 to-blue-600/20 rounded-lg border border-green-500/30 hover:from-green-600/30 hover:to-blue-600/30 transition-all duration-300"
+                className="flex items-center gap-2 px-3 py-2 rounded-full backdrop-blur-2xl bg-white/10 hover:bg-white/15 border border-white/15 shadow-[0_8px_30px_rgba(0,0,0,0.35)] transition-all duration-300"
               >
                 {expandedLists ? 'Ver menos' : 'Ver todas'}
                 {expandedLists ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}

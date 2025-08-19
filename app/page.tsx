@@ -6,8 +6,7 @@ import { DashboardHeader } from '@/components/dashboard-header'
 import { StatsOverview } from '@/components/stats-overview'
 import { VisualDistribution } from '@/components/visual-distribution'
 import { QuickInsights } from '@/components/quick-insights'
-import { ListBreakdownTable } from '@/components/list-breakdown-table'
-import { ListPivotTable } from '@/components/list-pivot-table'
+import { ListKanban } from '@/components/list-kanban'
 import { LoadingSpinner } from '@/components/loading-spinner'
 import { OpenCardsTable } from '@/components/open-cards-table'
 import { SectionNav } from '@/components/section-nav'
@@ -199,7 +198,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen p-4 lg:p-6 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen p-4 lg:p-6 pt-20 sm:pt-24 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <DashboardHeader 
         lastUpdated={lastUpdated}
         onRefresh={fetchDashboardData}
@@ -207,12 +206,15 @@ export default function DashboardPage() {
 
       {/* Navegação entre seções */}
       <SectionNav
+        pages={[
+          { href: '/', label: 'Visão Geral' },
+          { href: '/produtividade', label: 'Produtividade' },
+        ]}
         items={[
           { href: '#overview', label: 'Visão Geral', icon: <Gauge className="w-4 h-4 text-blue-400" /> },
           { href: '#distribution', label: 'Distribuição', icon: <Layers3 className="w-4 h-4 text-green-400" /> },
           { href: '#insights', label: 'Insights', icon: <Lightbulb className="w-4 h-4 text-yellow-400" /> },
-          { href: '#pivot', label: 'Pivot por Lista', icon: <Table2 className="w-4 h-4 text-indigo-400" /> },
-          { href: '#breakdown', label: 'Detalhamento', icon: <LayoutList className="w-4 h-4 text-purple-400" /> },
+          { href: '#kanban', label: 'Kanban por Lista', icon: <Table2 className="w-4 h-4 text-indigo-400" /> },
           { href: '#open-cards', label: 'Cards Abertos', icon: <ListChecks className="w-4 h-4 text-pink-400" /> },
         ]}
       />
@@ -239,15 +241,12 @@ export default function DashboardPage() {
           />
         </section>
         
-        {/* NOVA VISÃO: Tabela Pivot - Uma linha por lista */}
-        <section id="pivot" className="scroll-mt-28">
-          <ListPivotTable data={data.pivot} />
+        {/* Visão Kanban por Lista */}
+        <section id="kanban" className="scroll-mt-28">
+          <ListKanban data={data.pivot as any} />
         </section>
         
-        {/* Visão detalhada (opcional) */}
-        <section id="breakdown" className="scroll-mt-28">
-          <ListBreakdownTable breakdown={data.breakdown} />
-        </section>
+        {/* Seção de detalhamento removida (Kanban cobre os dados) */}
 
         {/* Lista completa de cards abertos */}
         <section id="open-cards" className="scroll-mt-28">

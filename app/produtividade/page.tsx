@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { SectionNav } from '@/components/section-nav'
+import { MemberActTypeKanban } from '@/components/member-acttype-kanban'
+import { MemberFlowsKanban } from '@/components/member-flows-kanban'
 import { Gauge, Users, GitBranch, Shapes } from 'lucide-react'
 
 type MemberActivityRow = {
@@ -190,9 +192,13 @@ export default function ProdutividadePage() {
   }, [rows, flows])
 
   return (
-    <div className="min-h-screen p-4 lg:p-6">
+    <div className="min-h-screen p-4 lg:p-6 pt-20 sm:pt-24">
       {/* Navegação por seções da página */}
       <SectionNav
+        pages={[
+          { href: '/', label: 'Visão Geral' },
+          { href: '/produtividade', label: 'Produtividade' },
+        ]}
         items={[
           { href: '#overview', label: 'Resumo por Membro', icon: <Users className="w-4 h-4 text-blue-400" /> },
           { href: '#by-act', label: 'Por Tipo de Ato', icon: <Shapes className="w-4 h-4 text-purple-400" /> },
@@ -200,7 +206,7 @@ export default function ProdutividadePage() {
         ]}
       />
 
-      <div className="max-w-7xl mx-auto space-y-8">
+      <div className="max-w-7xl mx-auto space-y-8 mt-16 sm:mt-20 lg:mt-24">
         <div className="flex flex-col md:flex-row md:items-end gap-4">
           <div>
             <h1 className="text-2xl font-bold">Produtividade por Membro</h1>
@@ -248,9 +254,6 @@ export default function ProdutividadePage() {
                       <th className="py-2 pr-4">Total</th>
                       <th className="py-2 pr-4">Criações</th>
                       <th className="py-2 pr-4">Movimentações</th>
-                      <th className="py-2 pr-4">Arquivados</th>
-                      <th className="py-2 pr-4">Desarquivados</th>
-                      <th className="py-2 pr-4">Excluídos</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -261,9 +264,6 @@ export default function ProdutividadePage() {
                         <td className="py-2 pr-4">{m.total_actions}</td>
                         <td className="py-2 pr-4">{m.created}</td>
                         <td className="py-2 pr-4">{m.moved}</td>
-                        <td className="py-2 pr-4">{m.archived}</td>
-                        <td className="py-2 pr-4">{m.unarchived}</td>
-                        <td className="py-2 pr-4">{m.deleted}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -273,82 +273,31 @@ export default function ProdutividadePage() {
             </section>
 
             <section id="by-act" className="scroll-mt-28">
-              <div className="card">
-              <div className="card-header">
-                <h3 className="card-title">Movimentações por tipo de ato (por membro)</h3>
-                <p className="card-description">Onde estão as maiores movimentações</p>
-              </div>
-              <div className="card-content overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="text-left text-gray-400 border-b border-gray-800">
-                      <th className="py-2 pr-4">Membro</th>
-                      <th className="py-2 pr-4">Distribuição de movimentações por tipo de ato</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Array.from(movementsByMemberAndActType.entries()).map(([memberKey, acts]) => (
-                      <tr key={memberKey} className="border-b border-gray-900 align-top">
-                        <td className="py-2 pr-4 whitespace-nowrap">{byMember.find(m => m.key === memberKey)?.member_fullname || memberKey}</td>
-                        <td className="py-2 pr-4">
-                          <div className="flex flex-wrap gap-2">
-                            {Array.from(acts.entries()).sort((a,b) => b[1]-a[1]).map(([act, count]) => (
-                              <span key={act} className="px-2 py-1 rounded bg-gray-800 border border-gray-700 text-gray-200">
-                                {act}: <span className="font-semibold">{count}</span>
-                              </span>
-                            ))}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              </div>
+              {(() => {
+                const columns = Array.from(movementsByMemberAndActType.entries()).map(([memberKey, acts]) => {
+                  const items = Array.from(acts.entries())
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([name, count]) => ({ name, count }))
+                  const total = items.reduce((sum, it) => sum + it.count, 0)
+                  const memberName = byMember.find(m => m.key === memberKey)?.member_fullname || memberKey
+                  return { memberKey, memberName, total, items }
+                })
+                return <MemberActTypeKanban data={columns} />
+              })()}
             </section>
 
             <section id="flows" className="scroll-mt-28">
-              <div className="card">
-              <div className="card-header">
-                <h3 className="card-title">Maiores fluxos por membro (origem → destino)</h3>
-                <p className="card-description">Principais caminhos de movimentação de cards e sua composição</p>
-              </div>
-              <div className="card-content space-y-6">
-                {flowsByMember.map(({ member, flows }) => (
-                  <div key={member} className="border border-gray-800 rounded-lg p-4">
-                    <div className="font-semibold mb-3">{byMember.find(m => m.key === member)?.member_fullname || member}</div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="text-left text-gray-400 border-b border-gray-800">
-                            <th className="py-2 pr-4">Fluxo</th>
-                            <th className="py-2 pr-4">Qtd</th>
-                            <th className="py-2 pr-4">Composição por tipo de ato</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {flows.slice(0, 5).map(f => (
-                            <tr key={`${f.from}→${f.to}`} className="border-b border-gray-900 align-top">
-                              <td className="py-2 pr-4 whitespace-nowrap">{f.from} → {f.to}</td>
-                              <td className="py-2 pr-4">{f.count}</td>
-                              <td className="py-2 pr-4">
-                                <div className="flex flex-wrap gap-2">
-                                  {Array.from(f.byAct.entries()).sort((a,b) => b[1]-a[1]).map(([act, count]) => (
-                                    <span key={act} className="px-2 py-1 rounded bg-gray-800 border border-gray-700 text-gray-200">
-                                      {act}: <span className="font-semibold">{count}</span>
-                                    </span>
-                                  ))}
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              </div>
+              {(() => {
+                const columns = flowsByMember.map(({ member, flows }) => {
+                  const items = flows
+                    .map(f => ({ label: `${f.from} → ${f.to}` , count: f.count }))
+                    .sort((a, b) => b.count - a.count)
+                  const total = items.reduce((sum, it) => sum + it.count, 0)
+                  const memberName = byMember.find(m => m.key === member)?.member_fullname || member
+                  return { memberKey: member, memberName, total, flows: items }
+                })
+                return <MemberFlowsKanban data={columns} />
+              })()}
             </section>
           </div>
         )}
