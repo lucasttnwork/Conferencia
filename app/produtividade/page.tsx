@@ -51,22 +51,35 @@ export default function ProdutividadePage() {
     return new Date(y, (m || 1) - 1, d || 1)
   }
 
-  const buildFilter = (): { from: Date; to: Date } | null => {
+  // Constrói limites de período como ISO UTC alinhados ao início/fim do dia local
+  const startOfLocalDay = (d: Date) => {
+    const x = new Date(d)
+    x.setHours(0, 0, 0, 0)
+    return x
+  }
+  const endOfLocalDay = (d: Date) => {
+    const x = new Date(d)
+    x.setHours(23, 59, 59, 999)
+    return x
+  }
+
+  const buildFilter = (): { fromIso: string; toIso: string } | null => {
     if (period === 'custom') {
       if (!customStart || !customEnd) return null
-      const from = parseLocalYmd(customStart)
-      const to = parseLocalYmd(customEnd)
-      // tornar inclusivo até o fim do dia selecionado
-      to.setHours(23, 59, 59, 999)
-      if (isNaN(from.getTime()) || isNaN(to.getTime())) return null
-      return { from, to }
+      const fromLocal = startOfLocalDay(parseLocalYmd(customStart))
+      const toLocal = endOfLocalDay(parseLocalYmd(customEnd))
+      if (isNaN(fromLocal.getTime()) || isNaN(toLocal.getTime())) return null
+      return { fromIso: fromLocal.toISOString(), toIso: toLocal.toISOString() }
     }
     const now = new Date()
     const map: Record<'7d' | '30d' | '60d' | '90d', number> = { '7d': 7, '30d': 30, '60d': 60, '90d': 90 }
-    const from = new Date(now)
     const days = map[period as '7d' | '30d' | '60d' | '90d']
-    from.setDate(from.getDate() - days)
-    return { from, to: now }
+    // Para cobrir dias inteiros: de hoje 00:00-(days-1) até hoje 23:59:59
+    const toLocal = endOfLocalDay(now)
+    const fromAnchor = new Date(startOfLocalDay(now))
+    fromAnchor.setDate(fromAnchor.getDate() - (days - 1))
+    const fromLocal = startOfLocalDay(fromAnchor)
+    return { fromIso: fromLocal.toISOString(), toIso: toLocal.toISOString() }
   }
 
   const fetchData = async () => {
@@ -78,8 +91,8 @@ export default function ProdutividadePage() {
         setLoading(false)
         return
       }
-      const { from, to } = range
-      const qs = new URLSearchParams({ from: from.toISOString(), to: to.toISOString() })
+      const { fromIso, toIso } = range
+      const qs = new URLSearchParams({ from: fromIso, to: toIso })
       const res = await fetch(`/api/produtividade?${qs.toString()}`, { cache: 'no-store' })
       if (!res.ok) throw new Error('Falha ao carregar produtividade')
       const data = await res.json()
