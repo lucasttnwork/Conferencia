@@ -14,12 +14,74 @@ export async function GET(request: Request) {
     const from = searchParams.get('from')
     const to = searchParams.get('to')
 
+    // 1) Descobrir quais cards estavam abertos em ALGUM momento do período [from, to]
+    //    usando created_at de cards + eventos de archive/unarchive até 'to'
+    if (!from || !to) {
+      return NextResponse.json({ rows: [], overview: [], byActType: [], flows: [] })
+    }
+
+    // Buscar todos os eventos até "to" a partir de member_activity, para reconstruir o estado real (datas do Trello)
+    const eventsUpToToRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/member_activity?select=card_id,action_type,occurred_at&occurred_at=lte.${encodeURIComponent(to)}`,
+      {
+        headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+      }
+    )
+    if (!eventsUpToToRes.ok) throw new Error('Falha ao consultar member_activity até to')
+    const allEvents: Array<{ card_id: string | null; action_type: string; occurred_at: string }> = await eventsUpToToRes.json()
+
+    const fromDate = new Date(from)
+    const toDate = new Date(to)
+    const eventsByCard = new Map<string, Array<{ type: string; at: Date }>>()
+    for (const e of allEvents) {
+      if (!e.card_id) continue
+      if (!eventsByCard.has(e.card_id)) eventsByCard.set(e.card_id, [])
+      eventsByCard.get(e.card_id)!.push({ type: e.action_type, at: new Date(e.occurred_at) })
+    }
+    Array.from(eventsByCard.values()).forEach((arr) => arr.sort((a, b) => a.at.getTime() - b.at.getTime()))
+
+    const openCardIds = new Set<string>()
+    Array.from(eventsByCard.entries()).forEach(([cardId, evts]) => {
+      if (evts.length === 0) return
+      const firstEvt = evts[0]
+      let openAtFrom = false
+      if (firstEvt.at > fromDate) {
+        // não existia evento até 'from': se o primeiro evento é 'create', então estava fechado em 'from';
+        // se é 'move' ou 'unarchive', assumimos que já estava aberto em 'from'
+        openAtFrom = firstEvt.type === 'create' ? false : true
+      } else {
+        // reproduz estado até 'from'
+        for (const e of evts) {
+          if (e.at <= fromDate) {
+            if (e.type === 'create' || e.type === 'unarchive') openAtFrom = true
+            if (e.type === 'archive' || e.type === 'delete') openAtFrom = false
+          } else {
+            break
+          }
+        }
+      }
+      if (openAtFrom) {
+        openCardIds.add(cardId)
+        return
+      }
+      // Caso contrário, se abriu em algum momento dentro da janela
+      for (const e of evts) {
+        if (e.at > fromDate && e.at <= toDate) {
+          if (e.type === 'create' || e.type === 'unarchive') {
+            openCardIds.add(cardId)
+            break
+          }
+        }
+      }
+    })
+
+    // 2) Buscar atividades dentro do período e filtrar pelos cards abertos na janela
     const filters: string[] = []
     if (from) filters.push(`occurred_at=gte.${encodeURIComponent(from)}`)
     if (to) filters.push(`occurred_at=lte.${encodeURIComponent(to)}`)
     const queryString = filters.length ? `&${filters.join('&')}` : ''
 
-    const url = `${SUPABASE_URL}/rest/v1/member_activity?select=*${queryString}`
+    const url = `${SUPABASE_URL}/rest/v1/member_activity?select=occurred_at,trello_action_id,card_id,action_type,member_id,member_username,member_fullname,from_list_id,from_list_name,to_list_id,to_list_name,act_type${queryString}`
     const res = await fetch(url, {
       headers: {
         apikey: SUPABASE_ANON_KEY,
@@ -27,7 +89,9 @@ export async function GET(request: Request) {
       },
     })
     if (!res.ok) throw new Error('Falha ao consultar member_activity')
-    const rows = await res.json()
+    const rawRows = (await res.json()) as any[]
+    // Mostrar registros do período para TODOS os cards abertos na janela (não apenas os que têm evento no período)
+    const rows = rawRows.filter((r) => r.card_id && openCardIds.has(r.card_id))
 
     // Aggregations inspired by docs/produtividade_views.md
     type Row = {
@@ -129,5 +193,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
   }
 }
+
 
 

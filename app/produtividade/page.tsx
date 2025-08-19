@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { SectionNav } from '@/components/section-nav'
+import DatePicker from '@/components/date-picker'
+import PeriodSelect from '@/components/period-select'
 import { MemberActTypeKanban } from '@/components/member-acttype-kanban'
 import { MemberFlowsKanban } from '@/components/member-flows-kanban'
 import { Gauge, Users, GitBranch, Shapes } from 'lucide-react'
@@ -44,14 +46,26 @@ export default function ProdutividadePage() {
   const [byActType, setByActType] = useState<any[] | null>(null)
   const [flows, setFlows] = useState<any[] | null>(null)
 
-  const buildFilter = () => {
-    if (period === 'custom' && customStart && customEnd) {
-      return { from: new Date(customStart), to: new Date(customEnd) }
+  const parseLocalYmd = (ymd: string) => {
+    const [y, m, d] = ymd.split('-').map(Number)
+    return new Date(y, (m || 1) - 1, d || 1)
+  }
+
+  const buildFilter = (): { from: Date; to: Date } | null => {
+    if (period === 'custom') {
+      if (!customStart || !customEnd) return null
+      const from = parseLocalYmd(customStart)
+      const to = parseLocalYmd(customEnd)
+      // tornar inclusivo até o fim do dia selecionado
+      to.setHours(23, 59, 59, 999)
+      if (isNaN(from.getTime()) || isNaN(to.getTime())) return null
+      return { from, to }
     }
     const now = new Date()
     const map: Record<'7d' | '30d' | '60d' | '90d', number> = { '7d': 7, '30d': 30, '60d': 60, '90d': 90 }
     const from = new Date(now)
-    from.setDate(from.getDate() - map[period as '7d' | '30d' | '60d' | '90d'])
+    const days = map[period as '7d' | '30d' | '60d' | '90d']
+    from.setDate(from.getDate() - days)
     return { from, to: now }
   }
 
@@ -59,9 +73,14 @@ export default function ProdutividadePage() {
     try {
       setLoading(true)
       setError(null)
-      const { from, to } = buildFilter()
+      const range = buildFilter()
+      if (!range) {
+        setLoading(false)
+        return
+      }
+      const { from, to } = range
       const qs = new URLSearchParams({ from: from.toISOString(), to: to.toISOString() })
-      const res = await fetch(`/api/produtividade?${qs.toString()}`)
+      const res = await fetch(`/api/produtividade?${qs.toString()}`, { cache: 'no-store' })
       if (!res.ok) throw new Error('Falha ao carregar produtividade')
       const data = await res.json()
       setRows((data.rows || []) as MemberActivityRow[])
@@ -213,21 +232,11 @@ export default function ProdutividadePage() {
             <p className="text-gray-400 text-sm">Criações, movimentações e arquivamentos no período</p>
           </div>
           <div className="ml-auto flex items-center gap-2">
-            <select
-              className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm"
-              value={period}
-              onChange={(e) => setPeriod(e.target.value as any)}
-            >
-              <option value="7d">Últimos 7 dias</option>
-              <option value="30d">Últimos 30 dias</option>
-              <option value="60d">Últimos 60 dias</option>
-              <option value="90d">Últimos 90 dias</option>
-              <option value="custom">Personalizado</option>
-            </select>
+            <PeriodSelect value={period} onChange={setPeriod as any} />
             {period === 'custom' && (
               <>
-                <input type="date" className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm" value={customStart} onChange={e => setCustomStart(e.target.value)} />
-                <input type="date" className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm" value={customEnd} onChange={e => setCustomEnd(e.target.value)} />
+                <DatePicker value={customStart} onChange={setCustomStart} />
+                <DatePicker value={customEnd} onChange={setCustomEnd} />
               </>
             )}
           </div>
@@ -258,7 +267,7 @@ export default function ProdutividadePage() {
                   </thead>
                   <tbody>
                     {byMember.map(m => (
-                      <tr key={m.key} className="border-b border-gray-900">
+                      <tr key={m.key} className="border-b border-gray-900 hover:bg-white/5 transition-colors">
                         <td className="py-2 pr-4">{m.member_fullname}</td>
                         <td className="py-2 pr-4 text-gray-400">{m.member_username}</td>
                         <td className="py-2 pr-4">{m.total_actions}</td>

@@ -220,27 +220,38 @@ export async function POST(request: Request) {
       eventType = 'update'
     }
 
-    // Inserir evento bruto para auditoria (idempotente por trello_action_id)
-    const { error: cardEventsError } = await supabase.from('card_events').upsert({
-      trello_action_id: action.id,
-      action_type: eventType,
-      raw_action_type: actionType,
-      card_id: card.id || null,
-      card_name: card.name || null,
-      board_id: board.id || null,
-      board_name: board.name || null,
-      list_from_id: listFrom?.id || null,
-      list_from_name: listFrom?.name || null,
-      list_to_id: listTo?.id || null,
-      list_to_name: listTo?.name || null,
-      member_id: member?.id || null,
-      member_username: member?.username || null,
-      member_fullname: member?.fullName || null,
-      occurred_at: occurredAt ? new Date(occurredAt).toISOString() : new Date().toISOString(),
-      payload_json: payload
-    }, { onConflict: 'trello_action_id' })
-    if (cardEventsError) {
-      console.error('[Webhook Trello] Erro ao upsert em card_events:', cardEventsError)
+    // Registrar evento via função RPC (resolve ids Trello -> UUID no banco)
+    try {
+      // Opcional: também registrar o webhook bruto para auditoria idempotente
+      try {
+        const { error: whErr } = await supabase.rpc('fn_record_webhook_event', {
+          p_board_trello_id: (board?.id || (typeof data?.card?.idBoard === 'string' ? data.card.idBoard : null) || null),
+          p_trello_action_id: action.id,
+          p_action_type: actionType,
+          p_payload: payload,
+        } as any)
+        if (whErr) console.warn('[Webhook Trello] Erro ao registrar webhook_event:', whErr)
+      } catch (e) {
+        console.warn('[Webhook Trello] Falha ao registrar webhook_event (função ausente?):', e)
+      }
+
+      const { error: recErr } = await supabase.rpc('fn_record_card_event', {
+        p_trello_action_id: action.id,
+        // Guardamos o tipo "raw" do Trello na função (ela duplica em raw_action_type)
+        p_action_type: actionType,
+        p_card_trello_id: card?.id || null,
+        p_board_trello_id: (board?.id || (typeof data?.card?.idBoard === 'string' ? data.card.idBoard : null) || null),
+        p_list_from_trello_id: listFrom?.id || null,
+        p_list_to_trello_id: listTo?.id || (typeof data?.card?.idList === 'string' ? data.card.idList : null) || null,
+        p_member_trello_id: member?.id || null,
+        p_occurred_at: occurredAt ? new Date(occurredAt).toISOString() : new Date().toISOString(),
+        p_payload_json: payload,
+      } as any)
+      if (recErr) {
+        console.error('[Webhook Trello] Erro ao registrar card_event (RPC):', recErr)
+      }
+    } catch (e) {
+      console.error('[Webhook Trello] Falha ao chamar RPC de card_event:', e)
     }
 
     // Resolver IDs auxiliares
@@ -446,38 +457,24 @@ export async function POST(request: Request) {
       }
     }
 
-    // Registrar movimentações explícitas (idempotente por trello_action_id)
+    // Registrar movimentações explícitas usando função RPC (idempotente por trello_action_id)
     if (eventType === 'move' || eventType === 'create') {
       try {
-        const movementBase: Record<string, any> = {
-          trello_action_id: action.id,
-          card_id: card.id || null,
-          occurred_at: occurredAt ? new Date(occurredAt).toISOString() : new Date().toISOString(),
-        }
-        // Condicionalmente incluir campos
-        if (listFrom?.id) movementBase.from_list_id = listFrom.id
-        if (movementsHasFromListName && listFrom?.name) movementBase.from_list_name = listFrom.name
-        if (listTo?.id) movementBase.to_list_id = listTo.id
-        if (movementsHasToListName && listTo?.name) movementBase.to_list_name = listTo.name
-        if (movementsHasMemberId && member?.id) movementBase.member_id = member.id
-        if (movementsHasMemberUsername && member?.username) movementBase.member_username = member.username
-        if (movementsHasMemberFullname && member?.fullName) movementBase.member_fullname = member.fullName
-        let movementPayload: Record<string, any> = { ...movementBase }
-        if (movementsHasBoardId && boardUuidForFk) movementPayload.board_id = boardUuidForFk
-        if (movementsHasMovedByMember && member?.id) movementPayload.moved_by_member_id = member.id
-
-        let { error: movementErrorUpsert } = await supabase.from('card_movements').upsert(movementPayload, { onConflict: 'trello_action_id' })
-        if (movementErrorUpsert && (movementsHasBoardId || movementsHasMovedByMember)) {
-          // Fallback: tentar sem campos adicionais
-          const { error: movementErrorFallback } = await supabase.from('card_movements').upsert(movementBase, { onConflict: 'trello_action_id' })
-          if (movementErrorFallback) {
-            console.error('[Webhook Trello] Erro ao upsert em card_movements (fallback também falhou):', movementErrorFallback)
+        const toListId: string | null = listTo?.id || (typeof data?.card?.idList === 'string' ? data.card.idList : null) || null
+        if (card?.id && toListId) {
+          const { error: moveErr } = await supabase.rpc('fn_set_card_list_by_trello', {
+            p_card_trello_id: card.id,
+            p_to_list_trello_id: toListId,
+            p_moved_by_member_trello_id: member?.id || null,
+            p_moved_at: occurredAt ? new Date(occurredAt).toISOString() : new Date().toISOString(),
+            p_trello_action_id: action.id,
+          } as any)
+          if (moveErr) {
+            console.error('[Webhook Trello] Erro ao registrar movimentação (RPC):', moveErr)
           }
-        } else if (movementErrorUpsert) {
-          console.error('[Webhook Trello] Erro ao upsert em card_movements:', movementErrorUpsert)
         }
       } catch (movementError) {
-        console.warn('[Webhook Trello] Falha ao inserir em card_movements (tabela ausente?):', movementError)
+        console.warn('[Webhook Trello] Falha ao chamar RPC de movimentação:', movementError)
       }
     }
 

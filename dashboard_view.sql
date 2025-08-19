@@ -322,7 +322,7 @@ WHERE COALESCE(c.is_closed, false) = false;
 CREATE OR REPLACE VIEW member_activity AS
 -- Parte 1: movimentos (create/move) vindos de card_movements, resolvendo nomes por JOINs
 SELECT 
-  COALESCE(cm.occurred_at, cm.moved_at) AS occurred_at,
+  COALESCE(cm.moved_at, cm.occurred_at) AS occurred_at,
   (cm.trello_action_id)::text AS trello_action_id,
   (cm.card_id)::text AS card_id,
   CASE 
