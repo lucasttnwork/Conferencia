@@ -243,6 +243,13 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen p-4 lg:p-6 pt-20 sm:pt-24 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+      {loading && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="glass-effect p-6 rounded-2xl border border-white/15 bg-white/10">
+            <LoadingSpinner />
+          </div>
+        </div>
+      )}
       <DashboardHeader 
         lastUpdated={lastUpdated}
         onRefresh={fetchDashboardData}

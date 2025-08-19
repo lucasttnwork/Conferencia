@@ -235,6 +235,21 @@ export default function ProdutividadePage() {
 
   return (
     <div className="min-h-screen p-4 lg:p-6 pt-20 sm:pt-24">
+      {loading && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="glass-effect p-6 rounded-2xl border border-white/15 bg-white/10">
+            <div className="flex flex-col items-center gap-4">
+              <div className="relative">
+                <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-700 border-t-blue-500"></div>
+                <div className="absolute inset-2 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30 animate-pulse"></div>
+              </div>
+              <div className="text-center">
+                <p className="text-sm text-gray-300">Atualizando produtividade...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Navegação por seções da página */}
       <SectionNav
         pages={[
