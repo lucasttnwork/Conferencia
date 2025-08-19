@@ -20,15 +20,35 @@ export async function GET(request: Request) {
       return NextResponse.json({ rows: [], overview: [], byActType: [], flows: [] })
     }
 
-    // Buscar todos os eventos até "to" a partir de member_activity, para reconstruir o estado real (datas do Trello)
-    const eventsUpToToRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/member_activity?select=card_id,action_type,occurred_at&occurred_at=lte.${encodeURIComponent(to)}`,
-      {
-        headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+    // Helper para buscar todas as páginas (PostgREST tem limite padrão de 1000 linhas por request)
+    const fetchAll = async (pathWithQuery: string) => {
+      const pageSize = 1000
+      let start = 0
+      const acc: any[] = []
+      // Usa Prefer: count=exact para garantir Content-Range está presente; mas iteramos pelo tamanho da página retornada
+      while (true) {
+        const end = start + pageSize - 1
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/${pathWithQuery}`, {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            Prefer: 'count=exact',
+            Range: `${start}-${end}`,
+          },
+        })
+        if (!res.ok) throw new Error(`Falha ao consultar ${pathWithQuery} [${start}-${end}]`)
+        const batch = await res.json()
+        acc.push(...batch)
+        if (!Array.isArray(batch) || batch.length < pageSize) break
+        start += pageSize
       }
+      return acc
+    }
+
+    // Buscar todos os eventos até "to" a partir de member_activity, para reconstruir o estado real (datas do Trello)
+    const allEvents: Array<{ card_id: string | null; action_type: string; occurred_at: string }> = await fetchAll(
+      `member_activity?select=card_id,action_type,occurred_at&occurred_at=lte.${encodeURIComponent(to)}&order=occurred_at.asc`
     )
-    if (!eventsUpToToRes.ok) throw new Error('Falha ao consultar member_activity até to')
-    const allEvents: Array<{ card_id: string | null; action_type: string; occurred_at: string }> = await eventsUpToToRes.json()
 
     const fromDate = new Date(from)
     const toDate = new Date(to)
@@ -81,15 +101,8 @@ export async function GET(request: Request) {
     if (to) filters.push(`occurred_at=lte.${encodeURIComponent(to)}`)
     const queryString = filters.length ? `&${filters.join('&')}` : ''
 
-    const url = `${SUPABASE_URL}/rest/v1/member_activity?select=occurred_at,trello_action_id,card_id,action_type,member_id,member_username,member_fullname,from_list_id,from_list_name,to_list_id,to_list_name,act_type${queryString}`
-    const res = await fetch(url, {
-      headers: {
-        apikey: SUPABASE_ANON_KEY,
-        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-      },
-    })
-    if (!res.ok) throw new Error('Falha ao consultar member_activity')
-    const rawRows = (await res.json()) as any[]
+    const path = `member_activity?select=occurred_at,trello_action_id,card_id,action_type,member_id,member_username,member_fullname,from_list_id,from_list_name,to_list_id,to_list_name,act_type${queryString}&order=occurred_at.asc`
+    const rawRows = (await fetchAll(path)) as any[]
     // Mostrar registros do período para TODOS os cards abertos na janela (não apenas os que têm evento no período)
     const rows = rawRows.filter((r) => r.card_id && openCardIds.has(r.card_id))
 
