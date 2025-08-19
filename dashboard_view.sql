@@ -11,7 +11,7 @@ WITH list_stats AS (
     COUNT(CASE WHEN c.act_type IS NOT NULL THEN 1 END) as cards_with_act_type,
     COUNT(CASE WHEN c.act_type IS NULL THEN 1 END) as cards_without_act_type
   FROM public.lists l
-  LEFT JOIN public.cards c ON l.id = c.current_list_id
+  LEFT JOIN public.cards c ON l.id = c.current_list_id AND COALESCE(c.is_closed, false) = false
   WHERE l.closed = false
   GROUP BY l.id, l.name, l.pos
 ),
@@ -22,6 +22,7 @@ act_type_stats AS (
     COUNT(CASE WHEN c.current_list_id IS NOT NULL THEN 1 END) as active_cards,
     SUM(CASE WHEN act_value IS NOT NULL THEN act_value ELSE 0 END) as total_value
   FROM public.cards c
+  WHERE COALESCE(c.is_closed, false) = false
   GROUP BY act_type
 ),
 list_act_type_breakdown AS (
@@ -33,7 +34,7 @@ list_act_type_breakdown AS (
     COUNT(*) as cards_count,
     SUM(CASE WHEN c.act_value IS NOT NULL THEN c.act_value ELSE 0 END) as total_value
   FROM public.lists l
-  LEFT JOIN public.cards c ON l.id = c.current_list_id
+  LEFT JOIN public.cards c ON l.id = c.current_list_id AND COALESCE(c.is_closed, false) = false
   WHERE l.closed = false
   GROUP BY l.id, l.name, l.pos, c.act_type
 ),
@@ -128,7 +129,7 @@ WITH list_stats AS (
     COUNT(CASE WHEN c.act_type IS NOT NULL THEN 1 END) as cards_with_act_type,
     COUNT(CASE WHEN c.act_type IS NULL THEN 1 END) as cards_without_act_type
   FROM public.lists l
-  LEFT JOIN public.cards c ON l.id = c.current_list_id
+  LEFT JOIN public.cards c ON l.id = c.current_list_id AND COALESCE(c.is_closed, false) = false
   WHERE l.closed = false
   GROUP BY l.id, l.name, l.pos
 ),
@@ -140,7 +141,7 @@ orphaned_cards AS (
     COUNT(CASE WHEN act_type IS NOT NULL THEN 1 END) as cards_with_act_type,
     COUNT(CASE WHEN act_type IS NULL THEN 1 END) as cards_without_act_type
   FROM public.cards c
-  WHERE c.current_list_id IS NULL
+  WHERE c.current_list_id IS NULL AND COALESCE(c.is_closed, false) = false
 )
 SELECT * FROM list_stats
 UNION ALL
@@ -164,15 +165,18 @@ SELECT
   COUNT(CASE WHEN act_value IS NOT NULL THEN 1 END) as cards_with_value,
   SUM(CASE WHEN act_value IS NOT NULL THEN act_value ELSE 0 END) as total_value,
   COUNT(CASE WHEN reconference = true THEN 1 END) as cards_needing_reconference
-FROM public.cards;
+FROM public.cards
+WHERE COALESCE(is_closed, false) = false;
 
 -- View para tipos de ato
 CREATE OR REPLACE VIEW dashboard_act_types AS
 SELECT 
   COALESCE(act_type, 'Não definido') as name,
   COUNT(*) as total_count,
+  COUNT(CASE WHEN current_list_id IS NOT NULL THEN 1 END) as active_cards,
   SUM(CASE WHEN act_value IS NOT NULL THEN act_value ELSE 0 END) as total_value
 FROM public.cards
+WHERE COALESCE(is_closed, false) = false
 GROUP BY act_type
 ORDER BY total_count DESC;
 
@@ -187,7 +191,7 @@ WITH list_act_counts AS (
     COUNT(*) AS cards_count,
     SUM(CASE WHEN c.act_value IS NOT NULL THEN c.act_value ELSE 0 END) AS total_value
   FROM public.lists l
-  LEFT JOIN public.cards c ON l.id = c.current_list_id
+  LEFT JOIN public.cards c ON l.id = c.current_list_id AND COALESCE(c.is_closed, false) = false
   WHERE l.closed = false
   GROUP BY l.id, l.name, l.pos, c.act_type
 ),
@@ -270,7 +274,7 @@ SELECT
     ELSE ROUND((COUNT(CASE WHEN c.act_type IS NOT NULL THEN 1 END)::numeric / COUNT(c.id)) * 100, 1)
   END as "Percentual Classificados"
 FROM public.lists l
-LEFT JOIN public.cards c ON l.id = c.current_list_id
+LEFT JOIN public.cards c ON l.id = c.current_list_id AND COALESCE(c.is_closed, false) = false
 WHERE l.closed = false
 GROUP BY l.id, l.name, l.pos
 ORDER BY l.pos;
@@ -294,7 +298,68 @@ SELECT
     ELSE 'Parcial'
   END as status
 FROM public.lists l
-LEFT JOIN public.cards c ON l.id = c.current_list_id
+LEFT JOIN public.cards c ON l.id = c.current_list_id AND COALESCE(c.is_closed, false) = false
 WHERE l.closed = false
 GROUP BY l.id, l.name, l.pos
 ORDER BY l.pos;
+
+-- View: cards abertos (não arquivados)
+CREATE OR REPLACE VIEW open_cards AS
+SELECT 
+  c.id,
+  c.name,
+  c.act_type,
+  c.act_value,
+  c.clerk_name,
+  c.current_list_id,
+  l.name AS list_name,
+  l.pos AS list_position
+FROM public.cards c
+LEFT JOIN public.lists l ON l.id = c.current_list_id
+WHERE COALESCE(c.is_closed, false) = false;
+
+-- View: atividade por membro (movimentações e arquivamentos)
+CREATE OR REPLACE VIEW member_activity AS
+-- Parte 1: movimentos (create/move) vindos de card_movements, resolvendo nomes por JOINs
+SELECT 
+  COALESCE(cm.occurred_at, cm.moved_at) AS occurred_at,
+  (cm.trello_action_id)::text AS trello_action_id,
+  (cm.card_id)::text AS card_id,
+  CASE 
+    WHEN cm.from_list_id IS NULL AND cm.to_list_id IS NOT NULL THEN 'create' 
+    ELSE 'move' 
+  END AS action_type,
+  (cm.moved_by_member_id)::text AS member_id,
+  m.username::text AS member_username,
+  m.full_name::text AS member_fullname,
+  (cm.from_list_id)::text AS from_list_id,
+  lf.name::text AS from_list_name,
+  (cm.to_list_id)::text AS to_list_id,
+  lt.name::text AS to_list_name,
+  c.act_type::text AS act_type
+FROM public.card_movements cm
+LEFT JOIN public.cards c ON c.id = cm.card_id
+LEFT JOIN public.members m ON m.id = cm.moved_by_member_id
+LEFT JOIN public.lists lf ON lf.id = cm.from_list_id
+LEFT JOIN public.lists lt ON lt.id = cm.to_list_id
+UNION ALL
+-- Parte 2: eventos (archive/unarchive/delete) vindos de card_events
+SELECT 
+  ce.occurred_at,
+  (ce.trello_action_id)::text AS trello_action_id,
+  (ce.card_id)::text AS card_id,
+  (ce.action_type)::text AS action_type,
+  (ce.member_id)::text AS member_id,
+  COALESCE(ce.member_username, m2.username)::text AS member_username,
+  COALESCE(ce.member_fullname, m2.full_name)::text AS member_fullname,
+  (ce.list_from_id)::text AS from_list_id,
+  COALESCE(ce.list_from_name, lf2.name)::text AS from_list_name,
+  (ce.list_to_id)::text AS to_list_id,
+  COALESCE(ce.list_to_name, lt2.name)::text AS to_list_name,
+  c.act_type::text AS act_type
+FROM public.card_events ce
+LEFT JOIN public.cards c ON c.id = ce.card_id
+LEFT JOIN public.members m2 ON m2.id = ce.member_id
+LEFT JOIN public.lists lf2 ON lf2.id = ce.list_from_id
+LEFT JOIN public.lists lt2 ON lt2.id = ce.list_to_id
+WHERE ce.action_type IN ('archive', 'unarchive', 'delete');

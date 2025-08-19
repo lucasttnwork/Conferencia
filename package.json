@@ -8,8 +8,18 @@
     "build": "next build",
     "start": "node server.js",
     "postinstall": "next build",
+    "db:apply:views": "node scripts/apply-dashboard-views.js",
     "lint": "next lint",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "tunnel": "node scripts/tunnel.js",
+    "ngrok": "node scripts/ngrok.js",
+    "trello:reset-webhooks": "node scripts/reset-trello-webhooks.js",
+    "seed:trello": "node scripts/seed-trello.js",
+    "seed:trello:rpc": "node --experimental-fetch scripts/seed-trello-rpc.mjs",
+    "backfill:actions": "node --experimental-fetch scripts/backfill-actions.mjs",
+    "verify:trello": "node --experimental-fetch scripts/verify-trello-sync.mjs",
+    "verify:today": "node --experimental-fetch scripts/verify-today.mjs",
+    "fill:today": "node --experimental-fetch scripts/fill-today.mjs"
   },
   "keywords": [
     "trello",
@@ -19,6 +29,9 @@
   ],
   "author": "",
   "license": "ISC",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.55.0",
     "@types/node": "^20.0.0",
@@ -45,6 +58,8 @@
   "devDependencies": {
     "@types/express": "^5.0.3",
     "eslint": "^8.0.0",
-    "eslint-config-next": "^14.0.0"
+    "eslint-config-next": "^14.0.0",
+    "localtunnel": "^2.0.2",
+    "ngrok": "^5.0.0-beta.2"
   }
 }

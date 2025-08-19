@@ -1,3 +1,4 @@
+Conferencia/
 node_modules/
 .next/
 .turbo/
@@ -75,3 +76,9 @@ jspm_packages/
 # OS
 .DS_Store
 Thumbs.db 
+ 
+# Tunnels
+tunnel_url.txt
+tunnel_log.txt
+.cursor/mcp.json
+/.cursor/

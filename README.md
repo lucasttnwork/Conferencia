@@ -113,3 +113,114 @@ Conferencia/
 - **CORS**: como o fetch ocorre no servidor (rota API), em geral não há impacto; se mover requisições para o client, poderá exigir configuração do Supabase.
 
 
+### MCP (Model Context Protocol) no Cursor
+
+Configuração oficial via `.cursor/mcp.json` (recomendada pelos DOCs):
+
+- Crie/edite `./.cursor/mcp.json` com o conteúdo abaixo, substituindo os placeholders pelos seus valores reais:
+
+```json
+{
+  "mcpServers": {
+    "supabase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server-supabase@latest",
+        "--read-only",
+        "--project-ref",
+        "<seu-project-ref>"
+      ],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "<seu-personal-access-token>"
+      }
+    },
+    "railway": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@jasontanswe/railway-mcp@latest"
+      ],
+      "env": {
+        "RAILWAY_API_TOKEN": "<seu-railway-api-token>"
+      }
+    }
+  }
+}
+```
+
+Notas importantes:
+- Este arquivo não deve ser commitado com credenciais reais. O repositório já ignora `/.cursor/mcp.json`.
+- Garanta `node`/`npx` no PATH (Windows: abra um terminal e rode `node -v`/`npx -v`).
+- Após salvar o arquivo, reinicie o Cursor ou reabra o projeto para que os MCPs sejam iniciados automaticamente.
+
+Diags rápidos:
+- Se o MCP do Supabase não iniciar, verifique se o `project-ref` está correto e se o `SUPABASE_ACCESS_TOKEN` é válido.
+- Se o MCP da Railway não iniciar, confirme o token em `RAILWAY_API_TOKEN` e conectividade com a API da Railway.
+
+
+### Webhook do Trello → Supabase (em tempo real)
+
+1. Variáveis de ambiente adicionais (`Conferencia/.env`):
+
+```
+SUPABASE_SERVICE_ROLE_KEY=...
+
+TRELLO_API_KEY=...
+TRELLO_API_TOKEN=...
+TRELLO_BOARD_ID=...
+TRELLO_API_SECRET=...
+TRELLO_WEBHOOK_CALLBACK_URL=https://<sua-base>/api/trello/webhook
+TRELLO_ALLOW_UNVERIFIED=false   # true em DEV para aceitar webhook sem assinatura
+```
+
+2. Crie as tabelas (se ainda não existir) no Supabase:
+
+```
+create table if not exists public.card_events (
+  id uuid primary key default gen_random_uuid(),
+  trello_action_id text unique,
+  action_type text not null,
+  raw_action_type text,
+  card_id text,
+  card_name text,
+  board_id text,
+  board_name text,
+  list_from_id text,
+  list_from_name text,
+  list_to_id text,
+  list_to_name text,
+  member_id text,
+  member_username text,
+  member_fullname text,
+  occurred_at timestamptz not null default now(),
+  payload_json jsonb,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.lists (
+  id text primary key,
+  name text,
+  pos numeric,
+  closed boolean default false
+);
+
+create table if not exists public.cards (
+  id text primary key,
+  name text,
+  current_list_id text references public.lists(id),
+  act_type text,
+  act_value numeric,
+  clerk_name text,
+  reconference boolean default false
+);
+```
+
+3. Endpoints:
+   - `HEAD /api/trello/webhook`: verificação do Trello ao registrar webhook
+   - `POST /api/trello/webhook`: recebe eventos, valida assinatura e grava em `card_events`, atualiza `lists/cards`
+   - `POST /api/trello/register`: registra webhook no Trello usando as variáveis
+
+4. Realtime no frontend: assine tabelas no Supabase e faça `refetch` de `/api/dashboard` quando houver mudanças.
+
+
