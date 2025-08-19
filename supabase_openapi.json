@@ -326,247 +326,6 @@
         ]
       }
     },
-    "/dashboard_list_pivot": {
-      "get": {
-        "parameters": [
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.list_name"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.list_position"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.total_cards"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Venda e Compra"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Procuração"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura Pública de Inventário e Partilha"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Doação"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Ata Notarial para Usucapião"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Procuração"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Sobrepartilha"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Divórcio"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Testamento"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Retificação e Ratificação"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Nomeação de inventariante"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Inventário e Partilha"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Confissão de Dívida"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Dação em pagamento"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Declaração de União Estável"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Compra e Venda"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Divórcio Direto"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura Pública de Inventário e Partilha de Bens"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Ata de Retificativa"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Inventário"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Venda e Compra com alienação fiduciária"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura Pública de Inventário e Adjudicação"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Permuta"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Venda e Compra com cláusula resolutiva"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura Pública de Cessão de Direitos Creditórios"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Revogação de Procuração"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de procuração"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura Pública de Confissão de Dívida"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Doação com Reserva de Usufruto"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Ata Notarial"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Ata Retificativa"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Reconhecimento e Dissolução de União Estável"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Restabelecimento de Sociedade Conjugal"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Escritura de Declaração de união estável"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Não definido"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Total Classificados"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_pivot.Percentual Classificados"
-          },
-          {
-            "$ref": "#/parameters/select"
-          },
-          {
-            "$ref": "#/parameters/order"
-          },
-          {
-            "$ref": "#/parameters/range"
-          },
-          {
-            "$ref": "#/parameters/rangeUnit"
-          },
-          {
-            "$ref": "#/parameters/offset"
-          },
-          {
-            "$ref": "#/parameters/limit"
-          },
-          {
-            "$ref": "#/parameters/preferCount"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "items": {
-                "$ref": "#/definitions/dashboard_list_pivot"
-              },
-              "type": "array"
-            }
-          },
-          "206": {
-            "description": "Partial Content"
-          }
-        },
-        "tags": [
-          "dashboard_list_pivot"
-        ]
-      }
-    },
-    "/dashboard_list_breakdown": {
-      "get": {
-        "parameters": [
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_breakdown.list_id"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_breakdown.list_name"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_breakdown.list_position"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_breakdown.total_cards_in_list"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_breakdown.unique_act_types"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_breakdown.classified_cards"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_breakdown.unclassified_cards"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_breakdown.completion_percentage"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_breakdown.act_type_name"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_breakdown.cards_count"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_breakdown.total_value"
-          },
-          {
-            "$ref": "#/parameters/select"
-          },
-          {
-            "$ref": "#/parameters/order"
-          },
-          {
-            "$ref": "#/parameters/range"
-          },
-          {
-            "$ref": "#/parameters/rangeUnit"
-          },
-          {
-            "$ref": "#/parameters/offset"
-          },
-          {
-            "$ref": "#/parameters/limit"
-          },
-          {
-            "$ref": "#/parameters/preferCount"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "items": {
-                "$ref": "#/definitions/dashboard_list_breakdown"
-              },
-              "type": "array"
-            }
-          },
-          "206": {
-            "description": "Partial Content"
-          }
-        },
-        "tags": [
-          "dashboard_list_breakdown"
-        ]
-      }
-    },
     "/boards": {
       "get": {
         "parameters": [
@@ -862,68 +621,6 @@
         ]
       }
     },
-    "/dashboard_lists": {
-      "get": {
-        "parameters": [
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_lists.id"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_lists.name"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_lists.position"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_lists.total_cards"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_lists.cards_with_act_type"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_lists.cards_without_act_type"
-          },
-          {
-            "$ref": "#/parameters/select"
-          },
-          {
-            "$ref": "#/parameters/order"
-          },
-          {
-            "$ref": "#/parameters/range"
-          },
-          {
-            "$ref": "#/parameters/rangeUnit"
-          },
-          {
-            "$ref": "#/parameters/offset"
-          },
-          {
-            "$ref": "#/parameters/limit"
-          },
-          {
-            "$ref": "#/parameters/preferCount"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "items": {
-                "$ref": "#/definitions/dashboard_lists"
-              },
-              "type": "array"
-            }
-          },
-          "206": {
-            "description": "Partial Content"
-          }
-        },
-        "tags": [
-          "dashboard_lists"
-        ]
-      }
-    },
     "/webhook_events": {
       "get": {
         "parameters": [
@@ -1085,74 +782,6 @@
         ]
       }
     },
-    "/dashboard_list_summary": {
-      "get": {
-        "parameters": [
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_summary.list_name"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_summary.list_position"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_summary.total_cards"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_summary.classified_cards"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_summary.unclassified_cards"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_summary.unique_act_types"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_summary.completion_percentage"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_list_summary.status"
-          },
-          {
-            "$ref": "#/parameters/select"
-          },
-          {
-            "$ref": "#/parameters/order"
-          },
-          {
-            "$ref": "#/parameters/range"
-          },
-          {
-            "$ref": "#/parameters/rangeUnit"
-          },
-          {
-            "$ref": "#/parameters/offset"
-          },
-          {
-            "$ref": "#/parameters/limit"
-          },
-          {
-            "$ref": "#/parameters/preferCount"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "items": {
-                "$ref": "#/definitions/dashboard_list_summary"
-              },
-              "type": "array"
-            }
-          },
-          "206": {
-            "description": "Partial Content"
-          }
-        },
-        "tags": [
-          "dashboard_list_summary"
-        ]
-      }
-    },
     "/card_labels": {
       "get": {
         "parameters": [
@@ -1285,9 +914,6 @@
             "$ref": "#/parameters/rowFilter.cards.current_list_id"
           },
           {
-            "$ref": "#/parameters/rowFilter.cards.current_list_trello_id"
-          },
-          {
             "$ref": "#/parameters/rowFilter.cards.name"
           },
           {
@@ -1414,9 +1040,6 @@
             "$ref": "#/parameters/rowFilter.cards.current_list_id"
           },
           {
-            "$ref": "#/parameters/rowFilter.cards.current_list_trello_id"
-          },
-          {
             "$ref": "#/parameters/rowFilter.cards.name"
           },
           {
@@ -1495,9 +1118,6 @@
             "$ref": "#/parameters/rowFilter.cards.current_list_id"
           },
           {
-            "$ref": "#/parameters/rowFilter.cards.current_list_trello_id"
-          },
-          {
             "$ref": "#/parameters/rowFilter.cards.name"
           },
           {
@@ -1565,14 +1185,20 @@
         ]
       }
     },
-    "/dashboard_stats": {
+    "/board_members": {
       "get": {
         "parameters": [
           {
-            "$ref": "#/parameters/rowFilter.dashboard_stats.data_type"
+            "$ref": "#/parameters/rowFilter.board_members.board_id"
           },
           {
-            "$ref": "#/parameters/rowFilter.dashboard_stats.data"
+            "$ref": "#/parameters/rowFilter.board_members.member_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.board_members.role"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.board_members.joined_at"
           },
           {
             "$ref": "#/parameters/select"
@@ -1601,7 +1227,7 @@
             "description": "OK",
             "schema": {
               "items": {
-                "$ref": "#/definitions/dashboard_stats"
+                "$ref": "#/definitions/board_members"
               },
               "type": "array"
             }
@@ -1611,7 +1237,85 @@
           }
         },
         "tags": [
-          "dashboard_stats"
+          "board_members"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/body.board_members"
+          },
+          {
+            "$ref": "#/parameters/select"
+          },
+          {
+            "$ref": "#/parameters/preferPost"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        },
+        "tags": [
+          "board_members"
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.board_members.board_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.board_members.member_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.board_members.role"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.board_members.joined_at"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "board_members"
+        ]
+      },
+      "patch": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/rowFilter.board_members.board_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.board_members.member_id"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.board_members.role"
+          },
+          {
+            "$ref": "#/parameters/rowFilter.board_members.joined_at"
+          },
+          {
+            "$ref": "#/parameters/body.board_members"
+          },
+          {
+            "$ref": "#/parameters/preferReturn"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        },
+        "tags": [
+          "board_members"
         ]
       }
     },
@@ -1677,59 +1381,6 @@
         },
         "tags": [
           "dashboard_total_cards"
-        ]
-      }
-    },
-    "/dashboard_act_types": {
-      "get": {
-        "parameters": [
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_act_types.name"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_act_types.total_count"
-          },
-          {
-            "$ref": "#/parameters/rowFilter.dashboard_act_types.total_value"
-          },
-          {
-            "$ref": "#/parameters/select"
-          },
-          {
-            "$ref": "#/parameters/order"
-          },
-          {
-            "$ref": "#/parameters/range"
-          },
-          {
-            "$ref": "#/parameters/rangeUnit"
-          },
-          {
-            "$ref": "#/parameters/offset"
-          },
-          {
-            "$ref": "#/parameters/limit"
-          },
-          {
-            "$ref": "#/parameters/preferCount"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "schema": {
-              "items": {
-                "$ref": "#/definitions/dashboard_act_types"
-              },
-              "type": "array"
-            }
-          },
-          "206": {
-            "description": "Partial Content"
-          }
-        },
-        "tags": [
-          "dashboard_act_types"
         ]
       }
     },
@@ -2333,6 +1984,518 @@
         ]
       }
     },
+    "/rpc/fn_upsert_card": {
+      "get": {
+        "parameters": [
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_trello_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_board_trello_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_current_list_trello_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_description",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_url",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "boolean",
+            "in": "query",
+            "name": "p_is_closed",
+            "required": true,
+            "type": "boolean"
+          },
+          {
+            "format": "timestamp with time zone",
+            "in": "query",
+            "name": "p_due_at",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) fn_upsert_card"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "args",
+            "required": true,
+            "schema": {
+              "properties": {
+                "p_board_trello_id": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "p_current_list_trello_id": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "p_description": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "p_due_at": {
+                  "format": "timestamp with time zone",
+                  "type": "string"
+                },
+                "p_is_closed": {
+                  "format": "boolean",
+                  "type": "boolean"
+                },
+                "p_name": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "p_trello_id": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "p_url": {
+                  "format": "text",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "p_trello_id",
+                "p_board_trello_id",
+                "p_current_list_trello_id",
+                "p_name",
+                "p_description",
+                "p_url",
+                "p_is_closed",
+                "p_due_at"
+              ],
+              "type": "object"
+            }
+          },
+          {
+            "$ref": "#/parameters/preferParams"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) fn_upsert_card"
+        ]
+      }
+    },
+    "/rpc/fn_record_webhook_event": {
+      "get": {
+        "parameters": [
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_board_trello_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_trello_action_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_action_type",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "jsonb",
+            "in": "query",
+            "name": "p_payload",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) fn_record_webhook_event"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "args",
+            "required": true,
+            "schema": {
+              "properties": {
+                "p_action_type": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "p_board_trello_id": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "p_payload": {
+                  "format": "jsonb"
+                },
+                "p_trello_action_id": {
+                  "format": "text",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "p_board_trello_id",
+                "p_trello_action_id",
+                "p_action_type",
+                "p_payload"
+              ],
+              "type": "object"
+            }
+          },
+          {
+            "$ref": "#/parameters/preferParams"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) fn_record_webhook_event"
+        ]
+      }
+    },
+    "/rpc/fn_attach_card_labels": {
+      "get": {
+        "parameters": [
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_card_trello_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "text[]",
+            "in": "query",
+            "name": "p_label_trello_ids",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) fn_attach_card_labels"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "args",
+            "required": true,
+            "schema": {
+              "properties": {
+                "p_card_trello_id": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "p_label_trello_ids": {
+                  "format": "text[]",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "p_card_trello_id",
+                "p_label_trello_ids"
+              ],
+              "type": "object"
+            }
+          },
+          {
+            "$ref": "#/parameters/preferParams"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) fn_attach_card_labels"
+        ]
+      }
+    },
+    "/rpc/fn_set_card_list_by_trello": {
+      "get": {
+        "parameters": [
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_card_trello_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_to_list_trello_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_moved_by_member_trello_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "timestamp with time zone",
+            "in": "query",
+            "name": "p_moved_at",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_trello_action_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) fn_set_card_list_by_trello"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "args",
+            "required": true,
+            "schema": {
+              "properties": {
+                "p_card_trello_id": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "p_moved_at": {
+                  "format": "timestamp with time zone",
+                  "type": "string"
+                },
+                "p_moved_by_member_trello_id": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "p_to_list_trello_id": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "p_trello_action_id": {
+                  "format": "text",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "p_card_trello_id",
+                "p_to_list_trello_id",
+                "p_moved_by_member_trello_id",
+                "p_moved_at",
+                "p_trello_action_id"
+              ],
+              "type": "object"
+            }
+          },
+          {
+            "$ref": "#/parameters/preferParams"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) fn_set_card_list_by_trello"
+        ]
+      }
+    },
+    "/rpc/fn_attach_card_members": {
+      "get": {
+        "parameters": [
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_card_trello_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "text[]",
+            "in": "query",
+            "name": "p_member_trello_ids",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) fn_attach_card_members"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "args",
+            "required": true,
+            "schema": {
+              "properties": {
+                "p_card_trello_id": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "p_member_trello_ids": {
+                  "format": "text[]",
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "p_card_trello_id",
+                "p_member_trello_ids"
+              ],
+              "type": "object"
+            }
+          },
+          {
+            "$ref": "#/parameters/preferParams"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) fn_attach_card_members"
+        ]
+      }
+    },
     "/rpc/backfill_card_list_id": {
       "get": {
         "parameters": [
@@ -2395,6 +2558,647 @@
           "(rpc) backfill_card_list_id"
         ]
       }
+    },
+    "/rpc/fn_upsert_board_member": {
+      "get": {
+        "parameters": [
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_board_trello_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_member_trello_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_role",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) fn_upsert_board_member"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "args",
+            "required": true,
+            "schema": {
+              "properties": {
+                "p_board_trello_id": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "p_member_trello_id": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "p_role": {
+                  "format": "text",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "p_board_trello_id",
+                "p_member_trello_id",
+                "p_role"
+              ],
+              "type": "object"
+            }
+          },
+          {
+            "$ref": "#/parameters/preferParams"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) fn_upsert_board_member"
+        ]
+      }
+    },
+    "/rpc/fn_upsert_list": {
+      "get": {
+        "parameters": [
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_trello_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_board_trello_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "numeric",
+            "in": "query",
+            "name": "p_pos",
+            "required": true,
+            "type": "number"
+          },
+          {
+            "format": "boolean",
+            "in": "query",
+            "name": "p_closed",
+            "required": true,
+            "type": "boolean"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) fn_upsert_list"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "args",
+            "required": true,
+            "schema": {
+              "properties": {
+                "p_board_trello_id": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "p_closed": {
+                  "format": "boolean",
+                  "type": "boolean"
+                },
+                "p_name": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "p_pos": {
+                  "format": "numeric",
+                  "type": "number"
+                },
+                "p_trello_id": {
+                  "format": "text",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "p_trello_id",
+                "p_board_trello_id",
+                "p_name",
+                "p_pos",
+                "p_closed"
+              ],
+              "type": "object"
+            }
+          },
+          {
+            "$ref": "#/parameters/preferParams"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) fn_upsert_list"
+        ]
+      }
+    },
+    "/rpc/fn_upsert_board": {
+      "get": {
+        "parameters": [
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_trello_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_url",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) fn_upsert_board"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "args",
+            "required": true,
+            "schema": {
+              "properties": {
+                "p_name": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "p_trello_id": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "p_url": {
+                  "format": "text",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "p_trello_id",
+                "p_name",
+                "p_url"
+              ],
+              "type": "object"
+            }
+          },
+          {
+            "$ref": "#/parameters/preferParams"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) fn_upsert_board"
+        ]
+      }
+    },
+    "/rpc/fn_upsert_member": {
+      "get": {
+        "parameters": [
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_trello_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_username",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_full_name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_email",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) fn_upsert_member"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "args",
+            "required": true,
+            "schema": {
+              "properties": {
+                "p_email": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "p_full_name": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "p_trello_id": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "p_username": {
+                  "format": "text",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "p_trello_id",
+                "p_username",
+                "p_full_name",
+                "p_email"
+              ],
+              "type": "object"
+            }
+          },
+          {
+            "$ref": "#/parameters/preferParams"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) fn_upsert_member"
+        ]
+      }
+    },
+    "/rpc/fn_record_card_event": {
+      "get": {
+        "parameters": [
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_trello_action_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_action_type",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_card_trello_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_board_trello_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_list_from_trello_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_list_to_trello_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_member_trello_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "timestamp with time zone",
+            "in": "query",
+            "name": "p_occurred_at",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "jsonb",
+            "in": "query",
+            "name": "p_payload_json",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) fn_record_card_event"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "args",
+            "required": true,
+            "schema": {
+              "properties": {
+                "p_action_type": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "p_board_trello_id": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "p_card_trello_id": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "p_list_from_trello_id": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "p_list_to_trello_id": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "p_member_trello_id": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "p_occurred_at": {
+                  "format": "timestamp with time zone",
+                  "type": "string"
+                },
+                "p_payload_json": {
+                  "format": "jsonb"
+                },
+                "p_trello_action_id": {
+                  "format": "text",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "p_trello_action_id",
+                "p_action_type",
+                "p_card_trello_id",
+                "p_board_trello_id",
+                "p_list_from_trello_id",
+                "p_list_to_trello_id",
+                "p_member_trello_id",
+                "p_occurred_at",
+                "p_payload_json"
+              ],
+              "type": "object"
+            }
+          },
+          {
+            "$ref": "#/parameters/preferParams"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) fn_record_card_event"
+        ]
+      }
+    },
+    "/rpc/fn_upsert_label": {
+      "get": {
+        "parameters": [
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_trello_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_board_trello_id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "format": "text",
+            "in": "query",
+            "name": "p_color",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) fn_upsert_label"
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "args",
+            "required": true,
+            "schema": {
+              "properties": {
+                "p_board_trello_id": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "p_color": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "p_name": {
+                  "format": "text",
+                  "type": "string"
+                },
+                "p_trello_id": {
+                  "format": "text",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "p_trello_id",
+                "p_board_trello_id",
+                "p_name",
+                "p_color"
+              ],
+              "type": "object"
+            }
+          },
+          {
+            "$ref": "#/parameters/preferParams"
+          }
+        ],
+        "produces": [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "(rpc) fn_upsert_label"
+        ]
+      }
     }
   },
   "definitions": {
@@ -2411,7 +3215,7 @@
         "id": {
           "default": "gen_random_uuid()",
           "description": "Note:\nThis is a Primary Key.<pk/>",
-          "format": "text",
+          "format": "uuid",
           "type": "string"
         },
         "trello_id": {
@@ -2457,228 +3261,13 @@
       "properties": {
         "card_id": {
           "description": "Note:\nThis is a Primary Key.<pk/>\nThis is a Foreign Key to `cards.id`.<fk table='cards' column='id'/>",
-          "format": "text",
+          "format": "uuid",
           "type": "string"
         },
         "member_id": {
           "description": "Note:\nThis is a Primary Key.<pk/>\nThis is a Foreign Key to `members.id`.<fk table='members' column='id'/>",
           "format": "uuid",
           "type": "string"
-        }
-      },
-      "type": "object"
-    },
-    "dashboard_list_pivot": {
-      "properties": {
-        "list_name": {
-          "format": "text",
-          "type": "string"
-        },
-        "list_position": {
-          "format": "numeric",
-          "type": "number"
-        },
-        "total_cards": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Escritura de Venda e Compra": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Procuração": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Escritura Pública de Inventário e Partilha": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Escritura de Doação": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Ata Notarial para Usucapião": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Escritura de Procuração": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Escritura de Sobrepartilha": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Escritura de Divórcio": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Testamento": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Retificação e Ratificação": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Escritura de Nomeação de inventariante": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Escritura de Inventário e Partilha": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Escritura de Confissão de Dívida": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Escritura de Dação em pagamento": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Declaração de União Estável": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Escritura de Compra e Venda": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Escritura de Divórcio Direto": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Escritura Pública de Inventário e Partilha de Bens": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Ata de Retificativa": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Escritura de Inventário": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Escritura de Venda e Compra com alienação fiduciária": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Escritura Pública de Inventário e Adjudicação": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Escritura de Permuta": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Escritura de Venda e Compra com cláusula resolutiva": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Escritura Pública de Cessão de Direitos Creditórios": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Revogação de Procuração": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Escritura de procuração": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Escritura Pública de Confissão de Dívida": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Escritura de Doação com Reserva de Usufruto": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Ata Notarial": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Ata Retificativa": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Escritura de Reconhecimento e Dissolução de União Estável": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Escritura de Restabelecimento de Sociedade Conjugal": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Escritura de Declaração de união estável": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Não definido": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Total Classificados": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "Percentual Classificados": {
-          "format": "numeric",
-          "type": "number"
-        }
-      },
-      "type": "object"
-    },
-    "dashboard_list_breakdown": {
-      "properties": {
-        "list_id": {
-          "description": "Note:\nThis is a Primary Key.<pk/>",
-          "format": "text",
-          "type": "string"
-        },
-        "list_name": {
-          "format": "text",
-          "type": "string"
-        },
-        "list_position": {
-          "format": "numeric",
-          "type": "number"
-        },
-        "total_cards_in_list": {
-          "format": "numeric",
-          "type": "number"
-        },
-        "unique_act_types": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "classified_cards": {
-          "format": "numeric",
-          "type": "number"
-        },
-        "unclassified_cards": {
-          "format": "numeric",
-          "type": "number"
-        },
-        "completion_percentage": {
-          "format": "numeric",
-          "type": "number"
-        },
-        "act_type_name": {
-          "format": "text",
-          "type": "string"
-        },
-        "cards_count": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "total_value": {
-          "format": "numeric",
-          "type": "number"
         }
       },
       "type": "object"
@@ -2756,35 +3345,6 @@
       },
       "type": "object"
     },
-    "dashboard_lists": {
-      "properties": {
-        "id": {
-          "format": "text",
-          "type": "string"
-        },
-        "name": {
-          "format": "text",
-          "type": "string"
-        },
-        "position": {
-          "format": "numeric",
-          "type": "number"
-        },
-        "total_cards": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "cards_with_act_type": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "cards_without_act_type": {
-          "format": "bigint",
-          "type": "integer"
-        }
-      },
-      "type": "object"
-    },
     "webhook_events": {
       "required": [
         "id",
@@ -2825,43 +3385,6 @@
       },
       "type": "object"
     },
-    "dashboard_list_summary": {
-      "properties": {
-        "list_name": {
-          "format": "text",
-          "type": "string"
-        },
-        "list_position": {
-          "format": "numeric",
-          "type": "number"
-        },
-        "total_cards": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "classified_cards": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "unclassified_cards": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "unique_act_types": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "completion_percentage": {
-          "format": "numeric",
-          "type": "number"
-        },
-        "status": {
-          "format": "text",
-          "type": "string"
-        }
-      },
-      "type": "object"
-    },
     "card_labels": {
       "required": [
         "card_id",
@@ -2870,7 +3393,7 @@
       "properties": {
         "card_id": {
           "description": "Note:\nThis is a Primary Key.<pk/>\nThis is a Foreign Key to `cards.id`.<fk table='cards' column='id'/>",
-          "format": "text",
+          "format": "uuid",
           "type": "string"
         },
         "label_id": {
@@ -2893,7 +3416,7 @@
         "id": {
           "default": "gen_random_uuid()",
           "description": "Note:\nThis is a Primary Key.<pk/>",
-          "format": "text",
+          "format": "uuid",
           "type": "string"
         },
         "trello_id": {
@@ -2906,11 +3429,8 @@
           "type": "string"
         },
         "current_list_id": {
-          "format": "text",
-          "type": "string"
-        },
-        "current_list_trello_id": {
-          "format": "text",
+          "description": "Note:\nThis is a Foreign Key to `lists.id`.<fk table='lists' column='id'/>",
+          "format": "uuid",
           "type": "string"
         },
         "name": {
@@ -2987,14 +3507,30 @@
       },
       "type": "object"
     },
-    "dashboard_stats": {
+    "board_members": {
+      "required": [
+        "board_id",
+        "member_id"
+      ],
       "properties": {
-        "data_type": {
+        "board_id": {
+          "description": "Note:\nThis is a Primary Key.<pk/>\nThis is a Foreign Key to `boards.id`.<fk table='boards' column='id'/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "member_id": {
+          "description": "Note:\nThis is a Primary Key.<pk/>\nThis is a Foreign Key to `members.id`.<fk table='members' column='id'/>",
+          "format": "uuid",
+          "type": "string"
+        },
+        "role": {
           "format": "text",
           "type": "string"
         },
-        "data": {
-          "format": "json"
+        "joined_at": {
+          "default": "now()",
+          "format": "timestamp with time zone",
+          "type": "string"
         }
       },
       "type": "object"
@@ -3032,23 +3568,6 @@
       },
       "type": "object"
     },
-    "dashboard_act_types": {
-      "properties": {
-        "name": {
-          "format": "text",
-          "type": "string"
-        },
-        "total_count": {
-          "format": "bigint",
-          "type": "integer"
-        },
-        "total_value": {
-          "format": "numeric",
-          "type": "number"
-        }
-      },
-      "type": "object"
-    },
     "card_movements": {
       "required": [
         "id",
@@ -3063,6 +3582,7 @@
           "type": "integer"
         },
         "card_id": {
+          "description": "Note:\nThis is a Foreign Key to `cards.id`.<fk table='cards' column='id'/>",
           "format": "uuid",
           "type": "string"
         },
@@ -3072,10 +3592,12 @@
           "type": "string"
         },
         "from_list_id": {
+          "description": "Note:\nThis is a Foreign Key to `lists.id`.<fk table='lists' column='id'/>",
           "format": "uuid",
           "type": "string"
         },
         "to_list_id": {
+          "description": "Note:\nThis is a Foreign Key to `lists.id`.<fk table='lists' column='id'/>",
           "format": "uuid",
           "type": "string"
         },
@@ -3132,7 +3654,8 @@
           "type": "string"
         },
         "card_id": {
-          "format": "text",
+          "description": "Note:\nThis is a Foreign Key to `cards.id`.<fk table='cards' column='id'/>",
+          "format": "uuid",
           "type": "string"
         },
         "card_name": {
@@ -3140,7 +3663,8 @@
           "type": "string"
         },
         "board_id": {
-          "format": "text",
+          "description": "Note:\nThis is a Foreign Key to `boards.id`.<fk table='boards' column='id'/>",
+          "format": "uuid",
           "type": "string"
         },
         "board_name": {
@@ -3148,7 +3672,8 @@
           "type": "string"
         },
         "list_from_id": {
-          "format": "text",
+          "description": "Note:\nThis is a Foreign Key to `lists.id`.<fk table='lists' column='id'/>",
+          "format": "uuid",
           "type": "string"
         },
         "list_from_name": {
@@ -3156,7 +3681,8 @@
           "type": "string"
         },
         "list_to_id": {
-          "format": "text",
+          "description": "Note:\nThis is a Foreign Key to `lists.id`.<fk table='lists' column='id'/>",
+          "format": "uuid",
           "type": "string"
         },
         "list_to_name": {
@@ -3164,7 +3690,8 @@
           "type": "string"
         },
         "member_id": {
-          "format": "text",
+          "description": "Note:\nThis is a Foreign Key to `members.id`.<fk table='members' column='id'/>",
+          "format": "uuid",
           "type": "string"
         },
         "member_username": {
@@ -3405,330 +3932,6 @@
       "in": "query",
       "type": "string"
     },
-    "body.dashboard_list_pivot": {
-      "name": "dashboard_list_pivot",
-      "description": "dashboard_list_pivot",
-      "required": false,
-      "in": "body",
-      "schema": {
-        "$ref": "#/definitions/dashboard_list_pivot"
-      }
-    },
-    "rowFilter.dashboard_list_pivot.list_name": {
-      "name": "list_name",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.list_position": {
-      "name": "list_position",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.total_cards": {
-      "name": "total_cards",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Escritura de Venda e Compra": {
-      "name": "Escritura de Venda e Compra",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Procuração": {
-      "name": "Procuração",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Escritura Pública de Inventário e Partilha": {
-      "name": "Escritura Pública de Inventário e Partilha",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Escritura de Doação": {
-      "name": "Escritura de Doação",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Ata Notarial para Usucapião": {
-      "name": "Ata Notarial para Usucapião",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Escritura de Procuração": {
-      "name": "Escritura de Procuração",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Escritura de Sobrepartilha": {
-      "name": "Escritura de Sobrepartilha",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Escritura de Divórcio": {
-      "name": "Escritura de Divórcio",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Testamento": {
-      "name": "Testamento",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Retificação e Ratificação": {
-      "name": "Retificação e Ratificação",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Escritura de Nomeação de inventariante": {
-      "name": "Escritura de Nomeação de inventariante",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Escritura de Inventário e Partilha": {
-      "name": "Escritura de Inventário e Partilha",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Escritura de Confissão de Dívida": {
-      "name": "Escritura de Confissão de Dívida",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Escritura de Dação em pagamento": {
-      "name": "Escritura de Dação em pagamento",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Declaração de União Estável": {
-      "name": "Declaração de União Estável",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Escritura de Compra e Venda": {
-      "name": "Escritura de Compra e Venda",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Escritura de Divórcio Direto": {
-      "name": "Escritura de Divórcio Direto",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Escritura Pública de Inventário e Partilha de Bens": {
-      "name": "Escritura Pública de Inventário e Partilha de Bens",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Ata de Retificativa": {
-      "name": "Ata de Retificativa",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Escritura de Inventário": {
-      "name": "Escritura de Inventário",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Escritura de Venda e Compra com alienação fiduciária": {
-      "name": "Escritura de Venda e Compra com alienação fiduciária",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Escritura Pública de Inventário e Adjudicação": {
-      "name": "Escritura Pública de Inventário e Adjudicação",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Escritura de Permuta": {
-      "name": "Escritura de Permuta",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Escritura de Venda e Compra com cláusula resolutiva": {
-      "name": "Escritura de Venda e Compra com cláusula resolutiva",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Escritura Pública de Cessão de Direitos Creditórios": {
-      "name": "Escritura Pública de Cessão de Direitos Creditórios",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Revogação de Procuração": {
-      "name": "Revogação de Procuração",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Escritura de procuração": {
-      "name": "Escritura de procuração",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Escritura Pública de Confissão de Dívida": {
-      "name": "Escritura Pública de Confissão de Dívida",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Escritura de Doação com Reserva de Usufruto": {
-      "name": "Escritura de Doação com Reserva de Usufruto",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Ata Notarial": {
-      "name": "Ata Notarial",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Ata Retificativa": {
-      "name": "Ata Retificativa",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Escritura de Reconhecimento e Dissolução de União Estável": {
-      "name": "Escritura de Reconhecimento e Dissolução de União Estável",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Escritura de Restabelecimento de Sociedade Conjugal": {
-      "name": "Escritura de Restabelecimento de Sociedade Conjugal",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Escritura de Declaração de união estável": {
-      "name": "Escritura de Declaração de união estável",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Não definido": {
-      "name": "Não definido",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Total Classificados": {
-      "name": "Total Classificados",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_pivot.Percentual Classificados": {
-      "name": "Percentual Classificados",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "body.dashboard_list_breakdown": {
-      "name": "dashboard_list_breakdown",
-      "description": "dashboard_list_breakdown",
-      "required": false,
-      "in": "body",
-      "schema": {
-        "$ref": "#/definitions/dashboard_list_breakdown"
-      }
-    },
-    "rowFilter.dashboard_list_breakdown.list_id": {
-      "name": "list_id",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_breakdown.list_name": {
-      "name": "list_name",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_breakdown.list_position": {
-      "name": "list_position",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_breakdown.total_cards_in_list": {
-      "name": "total_cards_in_list",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_breakdown.unique_act_types": {
-      "name": "unique_act_types",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_breakdown.classified_cards": {
-      "name": "classified_cards",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_breakdown.unclassified_cards": {
-      "name": "unclassified_cards",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_breakdown.completion_percentage": {
-      "name": "completion_percentage",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_breakdown.act_type_name": {
-      "name": "act_type_name",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_breakdown.cards_count": {
-      "name": "cards_count",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_breakdown.total_value": {
-      "name": "total_value",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
     "body.boards": {
       "name": "boards",
       "description": "boards",
@@ -3813,51 +4016,6 @@
       "in": "query",
       "type": "string"
     },
-    "body.dashboard_lists": {
-      "name": "dashboard_lists",
-      "description": "dashboard_lists",
-      "required": false,
-      "in": "body",
-      "schema": {
-        "$ref": "#/definitions/dashboard_lists"
-      }
-    },
-    "rowFilter.dashboard_lists.id": {
-      "name": "id",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_lists.name": {
-      "name": "name",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_lists.position": {
-      "name": "position",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_lists.total_cards": {
-      "name": "total_cards",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_lists.cards_with_act_type": {
-      "name": "cards_with_act_type",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_lists.cards_without_act_type": {
-      "name": "cards_without_act_type",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
     "body.webhook_events": {
       "name": "webhook_events",
       "description": "webhook_events",
@@ -3905,63 +4063,6 @@
     },
     "rowFilter.webhook_events.processed_at": {
       "name": "processed_at",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "body.dashboard_list_summary": {
-      "name": "dashboard_list_summary",
-      "description": "dashboard_list_summary",
-      "required": false,
-      "in": "body",
-      "schema": {
-        "$ref": "#/definitions/dashboard_list_summary"
-      }
-    },
-    "rowFilter.dashboard_list_summary.list_name": {
-      "name": "list_name",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_summary.list_position": {
-      "name": "list_position",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_summary.total_cards": {
-      "name": "total_cards",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_summary.classified_cards": {
-      "name": "classified_cards",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_summary.unclassified_cards": {
-      "name": "unclassified_cards",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_summary.unique_act_types": {
-      "name": "unique_act_types",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_summary.completion_percentage": {
-      "name": "completion_percentage",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_list_summary.status": {
-      "name": "status",
       "required": false,
       "in": "query",
       "type": "string"
@@ -4016,12 +4117,6 @@
     },
     "rowFilter.cards.current_list_id": {
       "name": "current_list_id",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.cards.current_list_trello_id": {
-      "name": "current_list_trello_id",
       "required": false,
       "in": "query",
       "type": "string"
@@ -4128,23 +4223,35 @@
       "in": "query",
       "type": "string"
     },
-    "body.dashboard_stats": {
-      "name": "dashboard_stats",
-      "description": "dashboard_stats",
+    "body.board_members": {
+      "name": "board_members",
+      "description": "board_members",
       "required": false,
       "in": "body",
       "schema": {
-        "$ref": "#/definitions/dashboard_stats"
+        "$ref": "#/definitions/board_members"
       }
     },
-    "rowFilter.dashboard_stats.data_type": {
-      "name": "data_type",
+    "rowFilter.board_members.board_id": {
+      "name": "board_id",
       "required": false,
       "in": "query",
       "type": "string"
     },
-    "rowFilter.dashboard_stats.data": {
-      "name": "data",
+    "rowFilter.board_members.member_id": {
+      "name": "member_id",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.board_members.role": {
+      "name": "role",
+      "required": false,
+      "in": "query",
+      "type": "string"
+    },
+    "rowFilter.board_members.joined_at": {
+      "name": "joined_at",
       "required": false,
       "in": "query",
       "type": "string"
@@ -4196,33 +4303,6 @@
     },
     "rowFilter.dashboard_total_cards.cards_needing_reconference": {
       "name": "cards_needing_reconference",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "body.dashboard_act_types": {
-      "name": "dashboard_act_types",
-      "description": "dashboard_act_types",
-      "required": false,
-      "in": "body",
-      "schema": {
-        "$ref": "#/definitions/dashboard_act_types"
-      }
-    },
-    "rowFilter.dashboard_act_types.name": {
-      "name": "name",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_act_types.total_count": {
-      "name": "total_count",
-      "required": false,
-      "in": "query",
-      "type": "string"
-    },
-    "rowFilter.dashboard_act_types.total_value": {
-      "name": "total_value",
       "required": false,
       "in": "query",
       "type": "string"

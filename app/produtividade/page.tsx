@@ -1,0 +1,360 @@
+'use client'
+
+import { useEffect, useMemo, useState } from 'react'
+import { SectionNav } from '@/components/section-nav'
+import { Gauge, Users, GitBranch, Shapes } from 'lucide-react'
+
+type MemberActivityRow = {
+  occurred_at: string
+  trello_action_id: string
+  card_id: string
+  action_type: 'create' | 'move' | 'archive' | 'unarchive' | 'delete' | 'update' | 'comment'
+  member_id: string | null
+  member_username: string | null
+  member_fullname: string | null
+  from_list_id: string | null
+  from_list_name: string | null
+  to_list_id: string | null
+  to_list_name: string | null
+  act_type: string | null
+}
+
+type AggregatedByMember = {
+  key: string
+  member_fullname: string
+  member_username: string
+  total_actions: number
+  created: number
+  moved: number
+  archived: number
+  unarchived: number
+  deleted: number
+}
+
+export default function ProdutividadePage() {
+  const [period, setPeriod] = useState<'7d' | '30d' | '60d' | '90d' | 'custom'>('30d')
+  const [customStart, setCustomStart] = useState<string>('')
+  const [customEnd, setCustomEnd] = useState<string>('')
+  const [loading, setLoading] = useState<boolean>(true)
+  const [error, setError] = useState<string | null>(null)
+  const [rows, setRows] = useState<MemberActivityRow[]>([])
+  const [overview, setOverview] = useState<any[] | null>(null)
+  const [byActType, setByActType] = useState<any[] | null>(null)
+  const [flows, setFlows] = useState<any[] | null>(null)
+
+  const buildFilter = () => {
+    if (period === 'custom' && customStart && customEnd) {
+      return { from: new Date(customStart), to: new Date(customEnd) }
+    }
+    const now = new Date()
+    const map: Record<'7d' | '30d' | '60d' | '90d', number> = { '7d': 7, '30d': 30, '60d': 60, '90d': 90 }
+    const from = new Date(now)
+    from.setDate(from.getDate() - map[period as '7d' | '30d' | '60d' | '90d'])
+    return { from, to: now }
+  }
+
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const { from, to } = buildFilter()
+      const qs = new URLSearchParams({ from: from.toISOString(), to: to.toISOString() })
+      const res = await fetch(`/api/produtividade?${qs.toString()}`)
+      if (!res.ok) throw new Error('Falha ao carregar produtividade')
+      const data = await res.json()
+      setRows((data.rows || []) as MemberActivityRow[])
+      if (data.overview) setOverview(data.overview)
+      if (data.byActType) setByActType(data.byActType)
+      if (data.flows) setFlows(data.flows)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erro desconhecido')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [period, customStart, customEnd])
+
+  const byMember: AggregatedByMember[] = useMemo(() => {
+    if (overview && Array.isArray(overview)) {
+      return overview.map((o: any) => ({
+        key: o.member_id || o.member_username || o.member_fullname || 'desconhecido',
+        member_fullname: o.member_fullname,
+        member_username: o.member_username,
+        total_actions: o.total_actions,
+        created: o.created,
+        moved: o.moved,
+        archived: o.archived,
+        unarchived: o.unarchived,
+        deleted: o.deleted,
+      }))
+    }
+    const map = new Map<string, AggregatedByMember>()
+    for (const r of rows) {
+      const key = r.member_id || r.member_username || r.member_fullname || 'desconhecido'
+      if (!map.has(key)) {
+        map.set(key, {
+          key,
+          member_fullname: r.member_fullname || 'Desconhecido',
+          member_username: r.member_username || '-',
+          total_actions: 0,
+          created: 0,
+          moved: 0,
+          archived: 0,
+          unarchived: 0,
+          deleted: 0,
+        })
+      }
+      const agg = map.get(key)!
+      agg.total_actions += 1
+      if (r.action_type === 'create') agg.created += 1
+      else if (r.action_type === 'move') agg.moved += 1
+      else if (r.action_type === 'archive') agg.archived += 1
+      else if (r.action_type === 'unarchive') agg.unarchived += 1
+      else if (r.action_type === 'delete') agg.deleted += 1
+    }
+    return Array.from(map.values()).sort((a, b) => b.total_actions - a.total_actions)
+  }, [rows, overview])
+
+  const movementsByMemberAndActType = useMemo(() => {
+    if (byActType && Array.isArray(byActType)) {
+      const grouped = new Map<string, Map<string, number>>()
+      for (const r of byActType as any[]) {
+        const key = r.member_id || r.member_username || r.member_fullname || 'desconhecido'
+        const act = r.act_type_name || 'Não definido'
+        if (!grouped.has(key)) grouped.set(key, new Map<string, number>())
+        const m = grouped.get(key)!
+        m.set(act, (m.get(act) || 0) + (r.moved || r.total_actions || 0))
+      }
+      return grouped
+    }
+    const grouped = new Map<string, Map<string, number>>()
+    for (const r of rows) {
+      if (r.action_type !== 'move') continue
+      const key = r.member_id || r.member_username || r.member_fullname || 'desconhecido'
+      const act = r.act_type || 'Não definido'
+      if (!grouped.has(key)) grouped.set(key, new Map<string, number>())
+      const m = grouped.get(key)!
+      m.set(act, (m.get(act) || 0) + 1)
+    }
+    return grouped
+  }, [rows, byActType])
+
+  const flowsByMember = useMemo(() => {
+    type FlowKey = string
+    type FlowAgg = { from: string; to: string; count: number; byAct: Map<string, number> }
+    if (flows && Array.isArray(flows)) {
+      const map = new Map<string, Map<FlowKey, FlowAgg>>()
+      for (const r of flows as any[]) {
+        const memberKey = r.member_id || r.member_username || r.member_fullname || 'desconhecido'
+        const from = r.from_list_name
+        const to = r.to_list_name
+        const act = r.act_type_name || 'Não definido'
+        const flowKey = `${from}→${to}`
+        if (!map.has(memberKey)) map.set(memberKey, new Map())
+        const inner = map.get(memberKey)!
+        if (!inner.has(flowKey)) inner.set(flowKey, { from, to, count: 0, byAct: new Map() })
+        const agg = inner.get(flowKey)!
+        agg.count += r.moved || 0
+        agg.byAct.set(act, (agg.byAct.get(act) || 0) + (r.moved || 0))
+      }
+      const result = Array.from(map.entries()).map(([member, flows]) => {
+        const arr = Array.from(flows.values()).sort((a, b) => b.count - a.count)
+        return { member, flows: arr }
+      })
+      return result
+    }
+    const map = new Map<string, Map<FlowKey, FlowAgg>>()
+    for (const r of rows) {
+      if (r.action_type !== 'move') continue
+      const memberKey = r.member_id || r.member_username || r.member_fullname || 'desconhecido'
+      const from = r.from_list_name || r.from_list_id || '—'
+      const to = r.to_list_name || r.to_list_id || '—'
+      const flowKey = `${from}→${to}`
+      if (!map.has(memberKey)) map.set(memberKey, new Map())
+      const inner = map.get(memberKey)!
+      if (!inner.has(flowKey)) inner.set(flowKey, { from, to, count: 0, byAct: new Map() })
+      const agg = inner.get(flowKey)!
+      agg.count += 1
+      const act = r.act_type || 'Não definido'
+      agg.byAct.set(act, (agg.byAct.get(act) || 0) + 1)
+    }
+    const result = Array.from(map.entries()).map(([member, flows]) => {
+      const arr = Array.from(flows.values()).sort((a, b) => b.count - a.count)
+      return { member, flows: arr }
+    })
+    return result
+  }, [rows, flows])
+
+  return (
+    <div className="min-h-screen p-4 lg:p-6">
+      {/* Navegação por seções da página */}
+      <SectionNav
+        items={[
+          { href: '#overview', label: 'Resumo por Membro', icon: <Users className="w-4 h-4 text-blue-400" /> },
+          { href: '#by-act', label: 'Por Tipo de Ato', icon: <Shapes className="w-4 h-4 text-purple-400" /> },
+          { href: '#flows', label: 'Fluxos', icon: <GitBranch className="w-4 h-4 text-emerald-400" /> },
+        ]}
+      />
+
+      <div className="max-w-7xl mx-auto space-y-8">
+        <div className="flex flex-col md:flex-row md:items-end gap-4">
+          <div>
+            <h1 className="text-2xl font-bold">Produtividade por Membro</h1>
+            <p className="text-gray-400 text-sm">Criações, movimentações e arquivamentos no período</p>
+          </div>
+          <div className="ml-auto flex items-center gap-2">
+            <select
+              className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm"
+              value={period}
+              onChange={(e) => setPeriod(e.target.value as any)}
+            >
+              <option value="7d">Últimos 7 dias</option>
+              <option value="30d">Últimos 30 dias</option>
+              <option value="60d">Últimos 60 dias</option>
+              <option value="90d">Últimos 90 dias</option>
+              <option value="custom">Personalizado</option>
+            </select>
+            {period === 'custom' && (
+              <>
+                <input type="date" className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm" value={customStart} onChange={e => setCustomStart(e.target.value)} />
+                <input type="date" className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm" value={customEnd} onChange={e => setCustomEnd(e.target.value)} />
+              </>
+            )}
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="text-gray-400">Carregando...</div>
+        ) : error ? (
+          <div className="text-red-400">{error}</div>
+        ) : (
+          <div className="space-y-8">
+            <section id="overview" className="scroll-mt-28">
+              <div className="card">
+              <div className="card-header">
+                <h3 className="card-title">Ações por membro</h3>
+                <p className="card-description">Total, criações, movimentações e arquivamentos</p>
+              </div>
+              <div className="card-content overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-gray-400 border-b border-gray-800">
+                      <th className="py-2 pr-4">Membro</th>
+                      <th className="py-2 pr-4">Usuário</th>
+                      <th className="py-2 pr-4">Total</th>
+                      <th className="py-2 pr-4">Criações</th>
+                      <th className="py-2 pr-4">Movimentações</th>
+                      <th className="py-2 pr-4">Arquivados</th>
+                      <th className="py-2 pr-4">Desarquivados</th>
+                      <th className="py-2 pr-4">Excluídos</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {byMember.map(m => (
+                      <tr key={m.key} className="border-b border-gray-900">
+                        <td className="py-2 pr-4">{m.member_fullname}</td>
+                        <td className="py-2 pr-4 text-gray-400">{m.member_username}</td>
+                        <td className="py-2 pr-4">{m.total_actions}</td>
+                        <td className="py-2 pr-4">{m.created}</td>
+                        <td className="py-2 pr-4">{m.moved}</td>
+                        <td className="py-2 pr-4">{m.archived}</td>
+                        <td className="py-2 pr-4">{m.unarchived}</td>
+                        <td className="py-2 pr-4">{m.deleted}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              </div>
+            </section>
+
+            <section id="by-act" className="scroll-mt-28">
+              <div className="card">
+              <div className="card-header">
+                <h3 className="card-title">Movimentações por tipo de ato (por membro)</h3>
+                <p className="card-description">Onde estão as maiores movimentações</p>
+              </div>
+              <div className="card-content overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-gray-400 border-b border-gray-800">
+                      <th className="py-2 pr-4">Membro</th>
+                      <th className="py-2 pr-4">Distribuição de movimentações por tipo de ato</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Array.from(movementsByMemberAndActType.entries()).map(([memberKey, acts]) => (
+                      <tr key={memberKey} className="border-b border-gray-900 align-top">
+                        <td className="py-2 pr-4 whitespace-nowrap">{byMember.find(m => m.key === memberKey)?.member_fullname || memberKey}</td>
+                        <td className="py-2 pr-4">
+                          <div className="flex flex-wrap gap-2">
+                            {Array.from(acts.entries()).sort((a,b) => b[1]-a[1]).map(([act, count]) => (
+                              <span key={act} className="px-2 py-1 rounded bg-gray-800 border border-gray-700 text-gray-200">
+                                {act}: <span className="font-semibold">{count}</span>
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              </div>
+            </section>
+
+            <section id="flows" className="scroll-mt-28">
+              <div className="card">
+              <div className="card-header">
+                <h3 className="card-title">Maiores fluxos por membro (origem → destino)</h3>
+                <p className="card-description">Principais caminhos de movimentação de cards e sua composição</p>
+              </div>
+              <div className="card-content space-y-6">
+                {flowsByMember.map(({ member, flows }) => (
+                  <div key={member} className="border border-gray-800 rounded-lg p-4">
+                    <div className="font-semibold mb-3">{byMember.find(m => m.key === member)?.member_fullname || member}</div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="text-left text-gray-400 border-b border-gray-800">
+                            <th className="py-2 pr-4">Fluxo</th>
+                            <th className="py-2 pr-4">Qtd</th>
+                            <th className="py-2 pr-4">Composição por tipo de ato</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {flows.slice(0, 5).map(f => (
+                            <tr key={`${f.from}→${f.to}`} className="border-b border-gray-900 align-top">
+                              <td className="py-2 pr-4 whitespace-nowrap">{f.from} → {f.to}</td>
+                              <td className="py-2 pr-4">{f.count}</td>
+                              <td className="py-2 pr-4">
+                                <div className="flex flex-wrap gap-2">
+                                  {Array.from(f.byAct.entries()).sort((a,b) => b[1]-a[1]).map(([act, count]) => (
+                                    <span key={act} className="px-2 py-1 rounded bg-gray-800 border border-gray-700 text-gray-200">
+                                      {act}: <span className="font-semibold">{count}</span>
+                                    </span>
+                                  ))}
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              </div>
+            </section>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+

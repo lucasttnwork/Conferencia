@@ -9,6 +9,9 @@ import { QuickInsights } from '@/components/quick-insights'
 import { ListBreakdownTable } from '@/components/list-breakdown-table'
 import { ListPivotTable } from '@/components/list-pivot-table'
 import { LoadingSpinner } from '@/components/loading-spinner'
+import { OpenCardsTable } from '@/components/open-cards-table'
+import { SectionNav } from '@/components/section-nav'
+import { Gauge, LayoutList, Layers3, Table2, ListChecks, Lightbulb } from 'lucide-react'
 
 interface DashboardData {
   overall: {
@@ -98,6 +101,16 @@ interface DashboardData {
     unique_act_types: number
     completion_percentage: number
     status: string
+  }>
+  open_cards: Array<{
+    id: string
+    name: string
+    act_type: string | null
+    act_value: number | null
+    clerk_name: string | null
+    current_list_id: string | null
+    list_name: string | null
+    list_position: number | null
   }>
 }
 
@@ -191,28 +204,55 @@ export default function DashboardPage() {
         lastUpdated={lastUpdated}
         onRefresh={fetchDashboardData}
       />
+
+      {/* Navegação entre seções */}
+      <SectionNav
+        items={[
+          { href: '#overview', label: 'Visão Geral', icon: <Gauge className="w-4 h-4 text-blue-400" /> },
+          { href: '#distribution', label: 'Distribuição', icon: <Layers3 className="w-4 h-4 text-green-400" /> },
+          { href: '#insights', label: 'Insights', icon: <Lightbulb className="w-4 h-4 text-yellow-400" /> },
+          { href: '#pivot', label: 'Pivot por Lista', icon: <Table2 className="w-4 h-4 text-indigo-400" /> },
+          { href: '#breakdown', label: 'Detalhamento', icon: <LayoutList className="w-4 h-4 text-purple-400" /> },
+          { href: '#open-cards', label: 'Cards Abertos', icon: <ListChecks className="w-4 h-4 text-pink-400" /> },
+        ]}
+      />
       
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Visão Geral Compacta */}
-        <StatsOverview data={data.overall} />
+        <section id="overview" className="scroll-mt-28">
+          <StatsOverview data={data.overall} />
+        </section>
         
         {/* Distribuição Visual */}
-        <VisualDistribution 
-          lists={data.lists}
-          actTypes={data.act_types}
-        />
+        <section id="distribution" className="scroll-mt-28">
+          <VisualDistribution 
+            lists={data.lists}
+            actTypes={data.act_types}
+          />
+        </section>
         
         {/* Insights Rápidos */}
-        <QuickInsights 
-          breakdown={data.breakdown}
-          actTypes={data.act_types}
-        />
+        <section id="insights" className="scroll-mt-28">
+          <QuickInsights 
+            breakdown={data.breakdown}
+            actTypes={data.act_types}
+          />
+        </section>
         
         {/* NOVA VISÃO: Tabela Pivot - Uma linha por lista */}
-        <ListPivotTable data={data.pivot} />
+        <section id="pivot" className="scroll-mt-28">
+          <ListPivotTable data={data.pivot} />
+        </section>
         
         {/* Visão detalhada (opcional) */}
-        <ListBreakdownTable breakdown={data.breakdown} />
+        <section id="breakdown" className="scroll-mt-28">
+          <ListBreakdownTable breakdown={data.breakdown} />
+        </section>
+
+        {/* Lista completa de cards abertos */}
+        <section id="open-cards" className="scroll-mt-28">
+          <OpenCardsTable cards={data.open_cards} />
+        </section>
       </div>
     </div>
   )

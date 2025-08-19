@@ -1,58 +1,84 @@
--- Estrutura "as is" sincronizada com o projeto Supabase atual (schema public)
--- Recria extensões, tabelas, índices e views necessárias ao dashboard
+-- Snapshot do schema atual (Supabase) para recriação fiel em caso de necessidade
+-- Gerado a partir de inspeção do estado atual via MCP (information_schema + pg_indexes)
 
--- Extensões
+-- Extensões necessárias
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Remover views dependentes antes de recriar objetos
+DROP VIEW IF EXISTS public.dashboard_stats;
+DROP VIEW IF EXISTS public.dashboard_lists;
+DROP VIEW IF EXISTS public.dashboard_total_cards;
+DROP VIEW IF EXISTS public.dashboard_act_types;
+DROP VIEW IF EXISTS public.dashboard_list_breakdown;
+DROP VIEW IF EXISTS public.dashboard_list_pivot;
+DROP VIEW IF EXISTS public.dashboard_list_summary;
 
 -- Tabelas principais
 CREATE TABLE IF NOT EXISTS public.boards (
 	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-	trello_id TEXT,
-	name TEXT,
+	trello_id TEXT NOT NULL,
+	name TEXT NOT NULL,
 	url TEXT,
-	created_at TIMESTAMPTZ DEFAULT NOW()
+	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS boards_trello_id_key ON public.boards(trello_id);
 
 CREATE TABLE IF NOT EXISTS public.members (
 	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-	trello_id TEXT,
-	username TEXT,
+	trello_id TEXT NOT NULL,
+	username TEXT NOT NULL,
 	full_name TEXT,
 	email TEXT,
-	created_at TIMESTAMPTZ DEFAULT NOW()
+	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE UNIQUE INDEX IF NOT EXISTS members_trello_id_key ON public.members(trello_id);
+
 CREATE TABLE IF NOT EXISTS public.lists (
-	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-	trello_id TEXT,
-	board_id UUID REFERENCES public.boards(id),
-	name TEXT,
+	id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+	trello_id TEXT NOT NULL,
+	board_id UUID NOT NULL,
+	name TEXT NOT NULL,
 	pos NUMERIC,
-	closed BOOLEAN DEFAULT FALSE,
-	created_at TIMESTAMPTZ DEFAULT NOW(),
+	closed BOOLEAN NOT NULL DEFAULT FALSE,
+	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 	updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE UNIQUE INDEX IF NOT EXISTS lists_trello_id_key ON public.lists(trello_id);
+CREATE INDEX IF NOT EXISTS idx_lists_board ON public.lists(board_id);
+CREATE INDEX IF NOT EXISTS idx_lists_trello ON public.lists(trello_id);
+
 CREATE TABLE IF NOT EXISTS public.labels (
 	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-	trello_id TEXT,
-	board_id UUID REFERENCES public.boards(id),
+	trello_id TEXT NOT NULL,
+	board_id UUID NOT NULL,
 	name TEXT,
 	color TEXT,
-	created_at TIMESTAMPTZ DEFAULT NOW()
+	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS labels_trello_id_key ON public.labels(trello_id);
+CREATE INDEX IF NOT EXISTS idx_labels_board ON public.labels(board_id);
+
+-- Tipos de ato (tabela de domínio)
+CREATE TABLE IF NOT EXISTS public.act_type (
+	name TEXT PRIMARY KEY,
+	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS public.cards (
 	id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-	trello_id TEXT,
-	board_id UUID REFERENCES public.boards(id),
+	trello_id TEXT NOT NULL,
+	board_id UUID NOT NULL,
 	current_list_id TEXT,
 	current_list_trello_id TEXT,
 	name TEXT,
 	description TEXT,
 	url TEXT,
 	protocol_number TEXT,
-	is_closed BOOLEAN DEFAULT FALSE,
+	is_closed BOOLEAN NOT NULL DEFAULT FALSE,
 	due_at TIMESTAMPTZ,
 	received_at TIMESTAMPTZ,
 	received_at_text TEXT,
@@ -62,21 +88,90 @@ CREATE TABLE IF NOT EXISTS public.cards (
 	act_value_text TEXT,
 	clerk_email TEXT,
 	reconference BOOLEAN,
-	created_by_member_id UUID REFERENCES public.members(id),
-	created_at TIMESTAMPTZ DEFAULT NOW(),
+	created_by_member_id UUID,
+	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 	updated_at TIMESTAMPTZ
 );
 
--- Relacionamentos N-N
+CREATE UNIQUE INDEX IF NOT EXISTS cards_trello_id_key ON public.cards(trello_id);
+CREATE UNIQUE INDEX IF NOT EXISTS cards_board_id_protocol_number_key ON public.cards(board_id, protocol_number);
+CREATE INDEX IF NOT EXISTS idx_cards_board ON public.cards(board_id);
+CREATE INDEX IF NOT EXISTS idx_cards_current_list_id ON public.cards(current_list_id);
+CREATE INDEX IF NOT EXISTS idx_cards_list ON public.cards(current_list_id);
+CREATE INDEX IF NOT EXISTS idx_cards_list_trello ON public.cards(current_list_trello_id);
+CREATE INDEX IF NOT EXISTS idx_cards_act_type ON public.cards(act_type);
+CREATE INDEX IF NOT EXISTS idx_cards_protocol ON public.cards(protocol_number);
+
+-- Popular tipos de ato padrão
+INSERT INTO public.act_type(name) VALUES
+('Escritura de Venda e Compra'),
+('Escritura de Divórcio'),
+('Procuração'),
+('Escritura de Confissão de Dívida e Promessa de Dação em pagamento'),
+('Retificação e Ratificação'),
+('Escritura de Pacto Antenupcial'),
+('Ata Retificativa'),
+('Testamento'),
+('Ata Notarial'),
+('Escritura de Revogação de Procuração'),
+('Diretivas Antecipadas de Vontade'),
+('Escritura de Nomeação de inventariante'),
+('Escritura de Reconhecimento e Dissolução de União Estável'),
+('Escritura de Dissolução de União Estável'),
+('Escritura de Renuncia de Herança'),
+('Aditamento'),
+('Escritura de Renuncia de Usufruto'),
+('Escritura de Dação em Pagamento'),
+('Ata Notarial para Usucapião'),
+('Escritura Pública de União Estável'),
+('Rerratificação'),
+('Escritura de Inventário'),
+('Escritura de Cessão de Direitos'),
+('Arrolamento E Partilha'),
+('Escritura de Sobrepartilha'),
+('Escritura Pública de Instituição Amigável de Servidão Administrativa a Título Gratuito'),
+('Escritura de alienação fiduciária'),
+('Substabelecimento'),
+('Escritura de Doação'),
+('Escritura de Emancipação'),
+('Escritura de Abertura de Crédito Rotativo com Garantia Hipotecária'),
+('Escritura de Inventário e Adjudicação'),
+('Escritura de Inventário e Partilha'),
+('Escritura de Divisão amigável'),
+('Cancelamento de Cláusulas'),
+('Escritura de Declaração de Namoro'),
+('Escritura de Constituição de Servidão Perpétua e Gratuita de Passagem')
+ON CONFLICT (name) DO NOTHING;
+
+-- Sincronizar quaisquer valores já existentes em cards.act_type
+INSERT INTO public.act_type(name)
+SELECT DISTINCT act_type FROM public.cards WHERE act_type IS NOT NULL
+ON CONFLICT (name) DO NOTHING;
+
+-- Restringir cards.act_type para referenciar public.act_type(name)
+DO $$
+BEGIN
+	IF NOT EXISTS (
+		SELECT 1 FROM pg_constraint 
+		WHERE conname = 'cards_act_type_fkey' AND conrelid = 'public.cards'::regclass
+	) THEN
+		ALTER TABLE public.cards
+			ADD CONSTRAINT cards_act_type_fkey
+			FOREIGN KEY (act_type) REFERENCES public.act_type(name)
+			ON UPDATE CASCADE ON DELETE SET NULL;
+	END IF;
+END $$;
+
+-- Relacionamentos N-N (chaves compostas)
 CREATE TABLE IF NOT EXISTS public.card_labels (
-	card_id TEXT NOT NULL REFERENCES public.cards(id),
-	label_id UUID NOT NULL REFERENCES public.labels(id),
+	card_id TEXT NOT NULL,
+	label_id UUID NOT NULL,
 	PRIMARY KEY (card_id, label_id)
 );
 
 CREATE TABLE IF NOT EXISTS public.card_members (
-	card_id TEXT NOT NULL REFERENCES public.cards(id),
-	member_id UUID NOT NULL REFERENCES public.members(id),
+	card_id TEXT NOT NULL,
+	member_id UUID NOT NULL,
 	PRIMARY KEY (card_id, member_id)
 );
 
@@ -97,55 +192,47 @@ CREATE TABLE IF NOT EXISTS public.card_events (
 	member_id TEXT,
 	member_username TEXT,
 	member_fullname TEXT,
-	occurred_at TIMESTAMPTZ DEFAULT NOW(),
+	occurred_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 	payload_json JSONB,
-	created_at TIMESTAMPTZ DEFAULT NOW()
+	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE INDEX IF NOT EXISTS idx_card_events_card_id ON public.card_events(card_id);
+CREATE INDEX IF NOT EXISTS idx_card_events_occurred_at ON public.card_events(occurred_at);
 
 -- Movimentações
 CREATE TABLE IF NOT EXISTS public.card_movements (
 	id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-	card_id TEXT NOT NULL REFERENCES public.cards(id),
-	board_id UUID REFERENCES public.boards(id),
-	from_list_id UUID REFERENCES public.lists(id),
-	to_list_id UUID REFERENCES public.lists(id),
-	moved_by_member_id UUID REFERENCES public.members(id),
-	moved_at TIMESTAMPTZ,
+	card_id UUID NOT NULL,
+	board_id UUID NOT NULL,
+	from_list_id UUID,
+	to_list_id UUID,
+	moved_by_member_id UUID,
+	moved_at TIMESTAMPTZ NOT NULL,
 	trello_action_id TEXT,
 	occurred_at TIMESTAMPTZ DEFAULT NOW(),
 	created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+CREATE UNIQUE INDEX IF NOT EXISTS card_movements_trello_action_id_key ON public.card_movements(trello_action_id);
+CREATE INDEX IF NOT EXISTS idx_card_movements_card_id ON public.card_movements(card_id);
+CREATE INDEX IF NOT EXISTS idx_card_movements_occurred_at ON public.card_movements(occurred_at);
+CREATE INDEX IF NOT EXISTS idx_movements_card ON public.card_movements(card_id);
+CREATE INDEX IF NOT EXISTS idx_movements_member ON public.card_movements(moved_by_member_id);
+CREATE INDEX IF NOT EXISTS idx_movements_time ON public.card_movements(moved_at);
+
 -- Webhook (entrada bruta)
 CREATE TABLE IF NOT EXISTS public.webhook_events (
 	id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-	board_id UUID REFERENCES public.boards(id),
+	board_id UUID,
 	trello_action_id TEXT,
 	action_type TEXT,
 	payload JSONB NOT NULL,
-	received_at TIMESTAMPTZ DEFAULT NOW(),
+	received_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 	processed_at TIMESTAMPTZ
 );
 
--- Índices úteis
-CREATE INDEX IF NOT EXISTS idx_cards_board_id ON public.cards(board_id);
-CREATE INDEX IF NOT EXISTS idx_lists_board_id ON public.lists(board_id);
-CREATE INDEX IF NOT EXISTS idx_cards_current_list_id ON public.cards(current_list_id);
-CREATE INDEX IF NOT EXISTS idx_cards_act_type ON public.cards(act_type);
-CREATE INDEX IF NOT EXISTS idx_card_events_card_id ON public.card_events(card_id);
-CREATE INDEX IF NOT EXISTS idx_card_events_occurred_at ON public.card_events(occurred_at);
-CREATE INDEX IF NOT EXISTS idx_card_movements_card_id ON public.card_movements(card_id);
-CREATE INDEX IF NOT EXISTS idx_card_movements_occurred_at ON public.card_movements(occurred_at);
-
 -- Views do dashboard (coerentes com app/api/dashboard)
-DROP VIEW IF EXISTS public.dashboard_stats;
-DROP VIEW IF EXISTS public.dashboard_lists;
-DROP VIEW IF EXISTS public.dashboard_total_cards;
-DROP VIEW IF EXISTS public.dashboard_act_types;
-DROP VIEW IF EXISTS public.dashboard_list_breakdown;
-DROP VIEW IF EXISTS public.dashboard_list_pivot;
-DROP VIEW IF EXISTS public.dashboard_list_summary;
-
 CREATE OR REPLACE VIEW public.dashboard_stats AS
 WITH list_stats AS (
 	SELECT 
@@ -414,6 +501,31 @@ WHERE l.closed = false
 GROUP BY l.id, l.name, l.pos
 ORDER BY l.pos;
 
+CREATE OR REPLACE VIEW public.dashboard_list_summary AS
+SELECT 
+	l.name as list_name,
+	l.pos as list_position,
+	COUNT(c.id) as total_cards,
+	COUNT(CASE WHEN c.act_type IS NOT NULL THEN 1 END) as classified_cards,
+	COUNT(CASE WHEN c.act_type IS NULL THEN 1 END) as unclassified_cards,
+	COUNT(DISTINCT c.act_type) as unique_act_types,
+	CASE 
+		WHEN COUNT(c.id) = 0 THEN 0
+		ELSE ROUND((COUNT(CASE WHEN c.act_type IS NOT NULL THEN 1 END)::numeric / COUNT(c.id)) * 100, 1)
+	END as completion_percentage,
+	CASE 
+		WHEN COUNT(CASE WHEN c.act_type IS NOT NULL THEN 1 END) = 0 THEN 'Pendente'
+		WHEN COUNT(CASE WHEN c.act_type IS NULL THEN 1 END) = 0 THEN 'Completa'
+		ELSE 'Parcial'
+	END as status
+FROM public.lists l
+LEFT JOIN public.cards c ON l.trello_id = COALESCE(c.current_list_trello_id, c.current_list_id)
+WHERE l.closed = false
+GROUP BY l.id, l.name, l.pos
+ORDER BY l.pos;
+
 -- Recarregar schema para o PostgREST
 NOTIFY pgrst, 'reload schema';
 SELECT pg_notify('pgrst', 'reload schema');
+
+
