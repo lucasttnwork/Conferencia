@@ -40,8 +40,8 @@ export async function GET(request: Request) {
     })
 
     // Helper para paginação
-    const fetchAll = async (pathWithQuery: string) => {
-      const pageSize = 1000
+    const fetchAll = async (pathWithQuery: string, pageSizeOverride?: number) => {
+      const pageSize = pageSizeOverride && pageSizeOverride > 0 ? pageSizeOverride : 1000
       let start = 0
       const acc: any[] = []
       while (true) {
@@ -53,13 +53,59 @@ export async function GET(request: Request) {
             Range: `${start}-${end}`,
           },
         })
-        if (!res.ok) throw new Error(`Falha ao consultar ${pathWithQuery} [${start}-${end}]`)
+        if (!res.ok) {
+          let body = ''
+          try { body = await res.text() } catch {}
+          console.error('PostgREST error', { status: res.status, path: pathWithQuery, range: `${start}-${end}`, body: body?.slice?.(0, 500) })
+          throw new Error(`Falha ao consultar ${pathWithQuery} [${start}-${end}]`)
+        }
         const batch = await res.json()
         acc.push(...batch)
         if (!Array.isArray(batch) || batch.length < pageSize) break
         start += pageSize
       }
       return acc
+    }
+
+    // Helper: fatiar por janelas de datas para evitar timeouts do PostgREST
+    const fetchByDateChunks = async (
+      basePath: string,
+      dateCol: string,
+      fromIso: string | null,
+      toIso: string,
+      orderBy: string,
+      pageSizePerChunk = 500,
+      chunkDays = 7
+    ): Promise<any[]> => {
+      const results: any[] = []
+      const toDateObj = new Date(toIso)
+      const fromDateObj = fromIso ? new Date(fromIso) : new Date(toDateObj.getTime() - 60 * 24 * 3600 * 1000)
+      // Heurística: reduzir chunk quando janela > 30 dias
+      const spanDays = Math.max(1, Math.ceil((toDateObj.getTime() - fromDateObj.getTime()) / (24 * 3600 * 1000)))
+      const effectiveChunkDays = spanDays > 30 ? 3 : chunkDays
+      for (let cur = new Date(fromDateObj); cur <= toDateObj; ) {
+        const chunkStart = new Date(cur)
+        const chunkEnd = new Date(Math.min(toDateObj.getTime(), chunkStart.getTime() + effectiveChunkDays * 24 * 3600 * 1000 - 1))
+        const qs = `${dateCol}=gte.${encodeURIComponent(chunkStart.toISOString())}&${dateCol}=lte.${encodeURIComponent(chunkEnd.toISOString())}`
+        const path = `${basePath}&${qs}&order=${orderBy}.asc`
+        try {
+          const rows = await fetchAll(path, pageSizePerChunk)
+          results.push(...rows)
+        } catch (e) {
+          console.warn('[dashboard] chunk fetch failed', { path })
+        }
+        cur = new Date(chunkEnd.getTime() + 1)
+      }
+      // Deduplicar por trello_action_id quando disponível
+      const seen = new Set<string>()
+      const dedup: any[] = []
+      for (const r of results) {
+        const key = r.trello_action_id || `${r.card_id || 'x'}:${r.action_type}:${r.occurred_at}`
+        if (seen.has(key)) continue
+        seen.add(key)
+        dedup.push(r)
+      }
+      return dedup
     }
 
     // Se não houver período, mantemos as views agregadas padrão (estado atual do quadro)
@@ -81,9 +127,132 @@ export async function GET(request: Request) {
       const fromDate = new Date(from)
       const toDate = new Date(to)
 
-      const eventsAll: Array<any> = await fetchAll(
-        `member_activity?select=card_id,action_type,occurred_at,from_list_id,from_list_name,to_list_id,to_list_name,act_type&occurred_at=lte.${encodeURIComponent(to)}&order=occurred_at.asc`
-      )
+      let eventsAll: Array<any> = []
+      try {
+        // Tenta a view normalizada em janelas de 7 dias para evitar timeouts
+        const base = `member_activity_fast?select=trello_action_id,card_id,action_type,occurred_at,from_list_id,from_list_name,to_list_id,to_list_name`
+        eventsAll = await fetchByDateChunks(base, 'occurred_at', from, to, 'occurred_at', 500, 7)
+      } catch (e) {
+        // Fallback: consultar tabelas base com filtros e normalizar em memória
+        console.warn('[dashboard] Fallback para tabelas base (member_activity timeout)')
+        const tryFetchBase = async (table: string, tsCol: string, orderCol: string): Promise<any[]> => {
+          const base = `${table}?select=*`
+          return await fetchByDateChunks(base, tsCol, from, to, orderCol, 500, 7)
+        }
+        const fetchCardEventsBase = async (): Promise<any[]> => {
+          const attempts: Array<[string, string]> = [
+            ['occurred_at', 'occurred_at'],
+            ['created_at', 'created_at'],
+            ['inserted_at', 'inserted_at'],
+          ]
+          for (const [ts, order] of attempts) {
+            try { return await tryFetchBase('card_events', ts, order) } catch {}
+          }
+          return []
+        }
+        const fetchMovementsBase = async (): Promise<any[]> => {
+          const attempts: Array<[string, string]> = [
+            ['moved_at', 'moved_at'],
+            ['occurred_at', 'occurred_at'],
+            ['created_at', 'created_at'],
+            ['inserted_at', 'inserted_at'],
+          ]
+          for (const [ts, order] of attempts) {
+            try { return await tryFetchBase('card_movements', ts, order) } catch {}
+          }
+          return []
+        }
+        const [ceRaw, mvRaw] = await Promise.all([fetchCardEventsBase(), fetchMovementsBase()])
+
+        const ceNorm = ceRaw.map((r: any) => {
+          const occurredAt = r.occurred_at || r.created_at || r.inserted_at || null
+          const fromId = r.from_list_id || r.from_list_uuid || r.from_list_trello_id || r.list_before_id || null
+          const toId = r.to_list_id || r.to_list_uuid || r.to_list_trello_id || r.list_after_id || r.list_id || null
+          const act = String(r.action_type || '').toLowerCase()
+          const normalizedType = act === 'createcard' || act === 'copycard' || act === 'converttocardfromcheckitem' ? 'create'
+            : (act === 'updatecard' && (r.list_before_id || r.list_after_id)) ? 'move'
+            : act || 'update'
+          const cardId = r.card_id || r.card_uuid || r.card_trello_id || null
+          return {
+            card_id: cardId,
+            action_type: normalizedType,
+            occurred_at: occurredAt,
+            from_list_id: fromId,
+            from_list_name: r.from_list_name || null,
+            to_list_id: toId,
+            to_list_name: r.to_list_name || null,
+          }
+        })
+        const mvNorm = mvRaw.map((m: any) => {
+          const occurredAt = m.moved_at || m.occurred_at || m.created_at || m.inserted_at || null
+          const fromId = m.from_list_id || m.from_list_uuid || m.from_list_trello_id || null
+          const toId = m.to_list_id || m.to_list_uuid || m.to_list_trello_id || null
+          const cardId = m.card_id || m.card_uuid || m.card_trello_id || null
+          return {
+            card_id: cardId,
+            action_type: m.action_type || 'move',
+            occurred_at: occurredAt,
+            from_list_id: fromId,
+            from_list_name: m.from_list_name || null,
+            to_list_id: toId,
+            to_list_name: m.to_list_name || null,
+          }
+        })
+        eventsAll = [...ceNorm, ...mvNorm].filter((e: any) => !!e?.occurred_at)
+        eventsAll.sort((a: any, b: any) => new Date(a.occurred_at).getTime() - new Date(b.occurred_at).getTime())
+      }
+      // Se a leitura por chunks da view não retornou nada (timeouts/silencioso), forçar fallback
+      if (!eventsAll || eventsAll.length === 0) {
+        console.warn('[dashboard] View vazia após chunking; aplicando fallback às tabelas base')
+        const tryFetchBase2 = async (table: string, tsCol: string, orderCol: string): Promise<any[]> => {
+          const base = `${table}?select=*`
+          return await fetchByDateChunks(base, tsCol, from, to, orderCol, 500, 7)
+        }
+        const attemptsCE: Array<[string, string]> = [
+          ['occurred_at', 'occurred_at'],
+          ['created_at', 'created_at'],
+          ['inserted_at', 'inserted_at'],
+        ]
+        const attemptsMV: Array<[string, string]> = [
+          ['moved_at', 'moved_at'],
+          ['occurred_at', 'occurred_at'],
+          ['created_at', 'created_at'],
+          ['inserted_at', 'inserted_at'],
+        ]
+        let ceRaw2: any[] = []
+        for (const [ts, order] of attemptsCE) {
+          try { ceRaw2 = await tryFetchBase2('card_events', ts, order); if (ceRaw2.length) break } catch {}
+        }
+        let mvRaw2: any[] = []
+        for (const [ts, order] of attemptsMV) {
+          try { mvRaw2 = await tryFetchBase2('card_movements', ts, order); if (mvRaw2.length) break } catch {}
+        }
+        const ceNorm2 = ceRaw2.map((r: any) => ({
+          card_id: r.card_id || r.card_uuid || r.card_trello_id || null,
+          action_type: ((): string => {
+            const act = String(r.action_type || '').toLowerCase()
+            if (act === 'createcard' || act === 'copycard' || act === 'converttocardfromcheckitem') return 'create'
+            if (act === 'updatecard' && (r.list_before_id || r.list_after_id)) return 'move'
+            return r.action_type || 'update'
+          })(),
+          occurred_at: r.occurred_at || r.created_at || r.inserted_at || null,
+          from_list_id: r.from_list_id || r.from_list_uuid || r.from_list_trello_id || r.list_before_id || null,
+          from_list_name: r.from_list_name || null,
+          to_list_id: r.to_list_id || r.to_list_uuid || r.to_list_trello_id || r.list_after_id || r.list_id || null,
+          to_list_name: r.to_list_name || null,
+        }))
+        const mvNorm2 = mvRaw2.map((m: any) => ({
+          card_id: m.card_id || m.card_uuid || m.card_trello_id || null,
+          action_type: m.action_type || 'move',
+          occurred_at: m.moved_at || m.occurred_at || m.created_at || m.inserted_at || null,
+          from_list_id: m.from_list_id || m.from_list_uuid || m.from_list_trello_id || null,
+          from_list_name: m.from_list_name || null,
+          to_list_id: m.to_list_id || m.to_list_uuid || m.to_list_trello_id || null,
+          to_list_name: m.to_list_name || null,
+        }))
+        eventsAll = [...ceNorm2, ...mvNorm2].filter((e: any) => !!e?.occurred_at)
+        eventsAll.sort((a: any, b: any) => new Date(a.occurred_at).getTime() - new Date(b.occurred_at).getTime())
+      }
       const eventsByCard = new Map<string, Array<any>>()
       for (const e of eventsAll) {
         if (!e.card_id) continue
@@ -110,18 +279,19 @@ export async function GET(request: Request) {
         listMetaById.set(l.id, { name: l.name, pos: l.pos, trello_id: l.trello_id ?? null })
         if (l.trello_id) listIdByTrelloId.set(String(l.trello_id), String(l.id))
       }
-      const entryTriageIds = new Set<string>()
-      const DEFAULT_ENTRY_TRIAGE = ['6866abc12d1dd317b1f980b0', '67e44cc54b8865ef73dcaca6']
-      const envEntryTriagRaw = process.env.DASH_ENTRY_TRIAGE_LIST_IDS || DEFAULT_ENTRY_TRIAGE.join(',')
-      const envEntryTriage = envEntryTriagRaw.split(',').map((s) => s.trim()).filter(Boolean)
-      if (envEntryTriage.length > 0) {
-        for (const id of envEntryTriage) entryTriageIds.add(id)
-      } else {
-        // Fallback por nome, apenas para descobrir os IDs uma vez
-        for (const l of listsAll) {
-          const nm = String(l.name || '').toLowerCase()
-          if (nm.includes('entrada') || nm.includes('triagem')) entryTriageIds.add(l.id)
-        }
+      // IDs fixos (Trello) das listas Entrada/Triagem – definidos diretamente aqui
+      const ENTRY_TRIAGE_TRELLO_IDS = ['6866abc12d1dd317b1f980b0', '67e44cc54b8865ef73dcaca6']
+      // Conjunto contendo tanto os trello_ids quanto os UUIDs correspondentes (se existir)
+      const entryTriageAllIds = new Set<string>()
+      for (const trelloId of ENTRY_TRIAGE_TRELLO_IDS) {
+        entryTriageAllIds.add(String(trelloId))
+        const mapped = listIdByTrelloId.get(String(trelloId))
+        if (mapped) entryTriageAllIds.add(mapped)
+      }
+      // Sempre complementar por nome (garante cobertura mesmo sem trello_id ou quando os eventos trazem UUIDs)
+      for (const l of listsAll) {
+        const nm = String(l.name || '').toLowerCase()
+        if (nm.includes('entrada') || nm.includes('triagem')) entryTriageAllIds.add(l.id)
       }
 
       const existedCardIds = new Set<string>()
@@ -145,6 +315,7 @@ export async function GET(request: Request) {
         let openedWithin = false
         let createdWithin = false
         let touchedEntryOrTriageWithin = false
+        let touchedEntryOrTriageEver = false
         let archivedWithin = false
         let concludedWithin = false
         for (const e of evts) {
@@ -163,6 +334,13 @@ export async function GET(request: Request) {
           } else if (e.action_type === 'archive' || e.action_type === 'delete') {
             openState = false
           }
+          // Avaliar toque em Entrada/Triagem (sem restrição de período)
+          if ((e.to_list_id || e.to_list_name) && (isCreateEvent || e.action_type === 'move' || e.action_type === 'unarchive')) {
+            const nmEver = String(e.to_list_name || '').toLowerCase()
+            if (e.to_list_id && entryTriageAllIds.has(e.to_list_id)) touchedEntryOrTriageEver = true
+            else if (nmEver.includes('entrada') || nmEver.includes('triagem')) touchedEntryOrTriageEver = true
+          }
+
           if (at < fromDate) {
             openAtFrom = openState
             sawBeforeFrom = true
@@ -175,15 +353,10 @@ export async function GET(request: Request) {
                 createdListByCardFromEvents.set(cardId, { id: e.to_list_id || null, name: e.to_list_name || null })
               }
             }
-            if ((isCreateEvent || e.action_type === 'move' || e.action_type === 'unarchive') && e.to_list_id) {
-              if (entryTriageIds.has(e.to_list_id)) {
-                touchedEntryOrTriageWithin = true
-              }
-              // Fallback extra por nome (resiliência)
-              if (!touchedEntryOrTriageWithin) {
-                const nm = String(e.to_list_name || '').toLowerCase()
-                if (nm.includes('entrada') || nm.includes('triagem')) touchedEntryOrTriageWithin = true
-              }
+            if ((isCreateEvent || e.action_type === 'move' || e.action_type === 'unarchive') && (e.to_list_id || e.to_list_name)) {
+              if (e.to_list_id && entryTriageAllIds.has(e.to_list_id)) touchedEntryOrTriageWithin = true
+              const nm = String(e.to_list_name || '').toLowerCase()
+              if (nm.includes('entrada') || nm.includes('triagem')) touchedEntryOrTriageWithin = true
             }
             // Considera transições que definem is_closed = true no período
             if (e.action_type === 'archive' || e.action_type === 'delete') archivedWithin = true
@@ -209,7 +382,8 @@ export async function GET(request: Request) {
           existedCardIds.add(cardId)
         }
         if (openedWithin) openedSet.add(cardId)
-        if (createdWithin && touchedEntryOrTriageWithin) createdEntrySet.add(cardId)
+        // Para o resumo "tocou Entrada/Triagem", considerar qualquer momento (ever)
+        if (createdWithin && (touchedEntryOrTriageEver || touchedEntryOrTriageWithin)) createdEntrySet.add(cardId)
         if (archivedWithin) archivedSet.add(cardId)
         if (concludedWithin) concludedSet.add(cardId)
         if (openAtTo) openAtToSet.add(cardId)
@@ -326,8 +500,8 @@ export async function GET(request: Request) {
             if (mapped) listId = mapped
           }
           const meta = listId ? listMetaById.get(listId) : null
-          const effectiveListId = listId || `name:${String(meta?.name || '—')}`
           const listName = meta?.name || '—'
+          const effectiveListId = listId || `name:${String(listName)}`
           const listPosition = meta?.pos ?? 999999
           if (!createdByListCount.has(effectiveListId)) {
             createdByListCount.set(effectiveListId, { list_id: effectiveListId, list_name: listName, list_position: listPosition, total_created: 0 })
@@ -343,7 +517,7 @@ export async function GET(request: Request) {
           let listId: string | null = null
           if (toListId) {
             if (listMetaById.has(toListId)) listId = toListId
-            if (!listId) listId = listIdByTrelloId.get(String(toListId)) || null
+            else if (/^[0-9a-f]{24}$/i.test(String(toListId))) listId = listIdByTrelloId.get(String(toListId)) || null
           }
           const meta = listId ? listMetaById.get(listId) : null
           const effectiveListId = listId || `name:${String(toListName || meta?.name || '—')}`
@@ -356,6 +530,53 @@ export async function GET(request: Request) {
         }
       }
       const createdByList = Array.from(createdByListCount.values()).sort((a, b) => a.list_position - b.list_position)
+
+      // Resumo: quantos criados tocaram Entrada/Triagem no período
+      let createdTotal = Array.from(createdSet).filter((id) => existedCardIds.has(id)).length
+      let createdTouchedEntry = Array.from(createdEntrySet).filter((id) => existedCardIds.has(id)).length
+
+      // Se quisermos garantir "em qualquer momento", complementar com eventos pós-to
+      try {
+        const missingIds = Array.from(createdSet).filter((id) => existedCardIds.has(id) && !createdEntrySet.has(id))
+        const chunkSize = 500
+        const touchedLater = new Set<string>()
+        for (let i = 0; i < missingIds.length; i += chunkSize) {
+          const chunk = missingIds.slice(i, i + chunkSize)
+          const inList = `(${chunk.map((id) => `"${id}"`).join(',')})`
+          let evs: any[] = []
+          try {
+            const path = `member_activity_fast?select=card_id,action_type,to_list_id,to_list_name&card_id=in.${encodeURIComponent(inList)}&order=occurred_at.asc`
+            evs = await fetchAll(path, 500)
+          } catch {
+            // Fallback: buscar diretamente em tabelas base
+            const tryFetch = async (table: string) => await fetchAll(`${table}?select=*&card_id=in.${encodeURIComponent(inList)}&order=occurred_at.asc`, 500)
+            let raw: any[] = []
+            try { raw = await tryFetch('card_movements') } catch {}
+            if (!Array.isArray(raw) || raw.length === 0) {
+              try { raw = await tryFetch('card_events') } catch {}
+            }
+            evs = (raw || []).map((r: any) => ({
+              card_id: r.card_id || r.card_uuid || r.card_trello_id || null,
+              action_type: r.action_type || 'move',
+              to_list_id: r.to_list_id || r.to_list_uuid || r.to_list_trello_id || r.list_after_id || r.list_id || null,
+              to_list_name: r.to_list_name || null,
+            }))
+          }
+          for (const e of evs) {
+            const nm = String(e?.to_list_name || '').toLowerCase()
+            if ((e?.to_list_id && entryTriageAllIds.has(e.to_list_id)) || nm.includes('entrada') || nm.includes('triagem')) {
+              if (e.card_id) touchedLater.add(e.card_id)
+            }
+          }
+        }
+        for (const id of Array.from(touchedLater)) createdEntrySet.add(id)
+        createdTouchedEntry = Array.from(createdEntrySet).filter((id) => existedCardIds.has(id)).length
+      } catch {}
+      const createdEntrySummary = {
+        created_total: createdTotal,
+        created_touched_entry_triage: createdTouchedEntry,
+        percentage: createdTotal ? Math.round((createdTouchedEntry / createdTotal) * 100) : 0,
+      }
 
       // breakdown por lista e tipo de ato
       const breakdownMap = new Map<string, any>()
@@ -432,11 +653,12 @@ export async function GET(request: Request) {
         act_types: actTypes,
         created_act_types: createdActTypes,
         created_by_list: createdByList,
+        created_entry_summary: createdEntrySummary,
         breakdown,
         pivot,
         summary,
         open_cards: openCards,
-        _debug: { source_url: SUPABASE_URL, key_tail: SUPABASE_ANON_KEY ? SUPABASE_ANON_KEY.slice(-8) : null, period: { from, to }, entry_triage_ids: Array.from(entryTriageIds) },
+        _debug: { source_url: SUPABASE_URL, key_tail: SUPABASE_ANON_KEY ? SUPABASE_ANON_KEY.slice(-8) : null, period: { from, to }, entry_triage_ids: Array.from(entryTriageAllIds) },
       }, { headers: { 'Cache-Control': 'no-store' } })
     }
 

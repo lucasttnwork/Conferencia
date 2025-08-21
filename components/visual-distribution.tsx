@@ -31,9 +31,14 @@ interface VisualDistributionProps {
     list_position: number
     total_created: number
   }>
+  createdEntrySummary?: {
+    created_total: number
+    created_touched_entry_triage: number
+    percentage: number
+  }
 }
 
-export function VisualDistribution({ lists, actTypes, createdActTypes, createdByList }: VisualDistributionProps) {
+export function VisualDistribution({ lists, actTypes, createdActTypes, createdByList, createdEntrySummary }: VisualDistributionProps) {
   const [showActTypes, setShowActTypes] = useState(true)
   const [showLists, setShowLists] = useState(true)
   const [showCreated, setShowCreated] = useState(true)
@@ -354,6 +359,39 @@ export function VisualDistribution({ lists, actTypes, createdActTypes, createdBy
               )}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Resumo: Criados que tocaram Entrada/Triagem */}
+      {createdEntrySummary && (
+        <div className="card">
+          <div className="card-header">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 rounded-lg border border-emerald-500/30" />
+                <div>
+                  <h3 className="card-title">Criados que tocaram Entrada/Triagem</h3>
+                  <p className="card-description">Contraste entre criação e passagem por Entrada/Triagem</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="card-content">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-700/50">
+                <div className="text-sm text-gray-400">Criados no período</div>
+                <div className="text-2xl font-bold text-gray-100">{createdEntrySummary.created_total}</div>
+              </div>
+              <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-700/50">
+                <div className="text-sm text-gray-400">Tocaram Entrada/Triagem</div>
+                <div className="text-2xl font-bold text-gray-100">{createdEntrySummary.created_touched_entry_triage}</div>
+              </div>
+              <div className="p-4 bg-gray-800/50 rounded-lg border border-gray-700/50">
+                <div className="text-sm text-gray-400">Percentual</div>
+                <div className="text-2xl font-bold text-gray-100">{createdEntrySummary.percentage}%</div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

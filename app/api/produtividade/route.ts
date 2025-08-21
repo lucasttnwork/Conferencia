@@ -21,8 +21,8 @@ export async function GET(request: Request) {
     }
 
     // Helper para buscar todas as páginas (PostgREST tem limite padrão de 1000 linhas por request)
-    const fetchAll = async (pathWithQuery: string) => {
-      const pageSize = 1000
+    const fetchAll = async (pathWithQuery: string, pageSizeOverride?: number) => {
+      const pageSize = pageSizeOverride && pageSizeOverride > 0 ? pageSizeOverride : 1000
       let start = 0
       const acc: any[] = []
       // Usa Prefer: count=exact para garantir Content-Range está presente; mas iteramos pelo tamanho da página retornada
@@ -36,7 +36,12 @@ export async function GET(request: Request) {
             Range: `${start}-${end}`,
           },
         })
-        if (!res.ok) throw new Error(`Falha ao consultar ${pathWithQuery} [${start}-${end}]`)
+        if (!res.ok) {
+          let body = ''
+          try { body = await res.text() } catch {}
+          console.error('PostgREST error', { status: res.status, path: pathWithQuery, range: `${start}-${end}`, body: body?.slice?.(0, 500) })
+          throw new Error(`Falha ao consultar ${pathWithQuery} [${start}-${end}]`)
+        }
         const batch = await res.json()
         acc.push(...batch)
         if (!Array.isArray(batch) || batch.length < pageSize) break
@@ -45,15 +50,67 @@ export async function GET(request: Request) {
       return acc
     }
 
-    // Buscar todos os eventos até "to" a partir de member_activity, para reconstruir o estado real (datas do Trello)
-    const allEvents: Array<{ card_id: string | null; action_type: string; occurred_at: string }> = await fetchAll(
-      `member_activity?select=card_id,action_type,occurred_at&occurred_at=lte.${encodeURIComponent(to)}&order=occurred_at.asc`
-    )
+    // Buscar todos os eventos até "to"; tenta a view e faz fallback para tabelas base se necessário
+    let allEvents: Array<{ card_id: string | null; action_type: string; occurred_at: string }> = []
+    try {
+      allEvents = await fetchAll(
+        `member_activity_fast?select=trello_action_id,card_id,action_type,occurred_at&occurred_at=lte.${encodeURIComponent(to)}&order=occurred_at.asc`,
+        500
+      )
+    } catch {
+      console.warn('[produtividade] Fallback para tabelas base (member_activity timeout)')
+      const tryFetchBase = async (table: string, tsCol: string, orderCol: string): Promise<any[]> => {
+        return await fetchAll(`${table}?select=*&${tsCol}=lte.${encodeURIComponent(to)}&order=${orderCol}.asc`, 500)
+      }
+      const fetchCardEventsBase = async (): Promise<any[]> => {
+        const attempts: Array<[string, string]> = [
+          ['occurred_at', 'occurred_at'],
+          ['created_at', 'created_at'],
+          ['inserted_at', 'inserted_at'],
+        ]
+        for (const [ts, order] of attempts) {
+          try { return await tryFetchBase('card_events', ts, order) } catch {}
+        }
+        return []
+      }
+      const fetchMovementsBase = async (): Promise<any[]> => {
+        const attempts: Array<[string, string]> = [
+          ['moved_at', 'moved_at'],
+          ['occurred_at', 'occurred_at'],
+          ['created_at', 'created_at'],
+          ['inserted_at', 'inserted_at'],
+        ]
+        for (const [ts, order] of attempts) {
+          try { return await tryFetchBase('card_movements', ts, order) } catch {}
+        }
+        return []
+      }
+      const [ceRaw, mvRaw] = await Promise.all([fetchCardEventsBase(), fetchMovementsBase()])
+      const ceNorm = ceRaw.map((r: any) => ({
+        card_id: r.card_id || r.card_uuid || r.card_trello_id || null,
+        action_type: String(r.action_type || '').toLowerCase() === 'createcard' || String(r.action_type || '').toLowerCase() === 'copycard' || String(r.action_type || '').toLowerCase() === 'converttocardfromcheckitem' ? 'create'
+          : (String(r.action_type || '').toLowerCase() === 'updatecard' && (r.list_before_id || r.list_after_id)) ? 'move'
+          : (r.action_type || 'update'),
+        occurred_at: r.occurred_at || r.created_at || r.inserted_at,
+      }))
+      const mvNorm = mvRaw.map((m: any) => ({
+        card_id: m.card_id || m.card_uuid || m.card_trello_id || null,
+        action_type: m.action_type || 'move',
+        occurred_at: m.moved_at || m.occurred_at || m.created_at || m.inserted_at,
+      }))
+      allEvents = [...ceNorm, ...mvNorm].filter((e) => e.card_id && e.occurred_at)
+      allEvents.sort((a, b) => new Date(a.occurred_at).getTime() - new Date(b.occurred_at).getTime())
+    }
 
     const fromDate = new Date(from)
     const toDate = new Date(to)
     const eventsByCard = new Map<string, Array<{ type: string; at: Date }>>()
+    // Deduplicar eventos por trello_action_id (quando existir)
+    const seenEv = new Set<string>()
     for (const e of allEvents) {
+      const evKey = (e as any).trello_action_id || `${e.card_id}:${e.action_type}:${e.occurred_at}`
+      if (seenEv.has(evKey)) continue
+      seenEv.add(evKey)
       if (!e.card_id) continue
       if (!eventsByCard.has(e.card_id)) eventsByCard.set(e.card_id, [])
       eventsByCard.get(e.card_id)!.push({ type: e.action_type, at: new Date(e.occurred_at) })
@@ -101,8 +158,76 @@ export async function GET(request: Request) {
     if (to) filters.push(`occurred_at=lte.${encodeURIComponent(to)}`)
     const queryString = filters.length ? `&${filters.join('&')}` : ''
 
-    const path = `member_activity?select=occurred_at,trello_action_id,card_id,action_type,member_id,member_username,member_fullname,from_list_id,from_list_name,to_list_id,to_list_name,act_type${queryString}&order=occurred_at.asc`
-    const rawRows = (await fetchAll(path)) as any[]
+    let rawRows: any[] = []
+    try {
+      const path = `member_activity_fast?select=occurred_at,trello_action_id,card_id,action_type,member_id,member_username,member_fullname,from_list_id,from_list_name,to_list_id,to_list_name,act_type${queryString}&order=occurred_at.asc`
+      rawRows = await fetchAll(path, 500)
+    } catch {
+      console.warn('[produtividade] Fallback rows por período via tabelas base')
+      const tryFetchRange = async (table: string, tsCol: string, orderCol: string): Promise<any[]> => {
+        const filters: string[] = []
+        if (from) filters.push(`${tsCol}=gte.${encodeURIComponent(from)}`)
+        if (to) filters.push(`${tsCol}=lte.${encodeURIComponent(to)}`)
+        const qs = filters.length ? `&${filters.join('&')}` : ''
+        return await fetchAll(`${table}?select=*&order=${orderCol}.asc${qs}`, 500)
+      }
+      const fetchCardEventsRange = async (): Promise<any[]> => {
+        const attempts: Array<[string, string]> = [
+          ['occurred_at', 'occurred_at'],
+          ['created_at', 'created_at'],
+          ['inserted_at', 'inserted_at'],
+        ]
+        for (const [ts, order] of attempts) {
+          try { return await tryFetchRange('card_events', ts, order) } catch {}
+        }
+        return []
+      }
+      const fetchMovementsRange = async (): Promise<any[]> => {
+        const attempts: Array<[string, string]> = [
+          ['moved_at', 'moved_at'],
+          ['occurred_at', 'occurred_at'],
+          ['created_at', 'created_at'],
+          ['inserted_at', 'inserted_at'],
+        ]
+        for (const [ts, order] of attempts) {
+          try { return await tryFetchRange('card_movements', ts, order) } catch {}
+        }
+        return []
+      }
+      const [ceR, mvR] = await Promise.all([fetchCardEventsRange(), fetchMovementsRange()])
+      const ceNorm = ceR.map((r: any) => ({
+        occurred_at: r.occurred_at || r.created_at || r.inserted_at,
+        trello_action_id: r.trello_action_id || null,
+        card_id: r.card_id || r.card_uuid || r.card_trello_id || null,
+        action_type: String(r.action_type || '').toLowerCase() === 'createcard' || String(r.action_type || '').toLowerCase() === 'copycard' || String(r.action_type || '').toLowerCase() === 'converttocardfromcheckitem' ? 'create'
+          : (String(r.action_type || '').toLowerCase() === 'updatecard' && (r.list_before_id || r.list_after_id)) ? 'move'
+          : (r.action_type || 'update'),
+        member_id: r.member_id || null,
+        member_username: r.member_username || null,
+        member_fullname: r.member_fullname || null,
+        from_list_id: r.from_list_id || r.from_list_uuid || r.from_list_trello_id || r.list_before_id || null,
+        from_list_name: r.from_list_name || null,
+        to_list_id: r.to_list_id || r.to_list_uuid || r.to_list_trello_id || r.list_after_id || r.list_id || null,
+        to_list_name: r.to_list_name || null,
+        act_type: r.act_type || null,
+      }))
+      const mvNorm = mvR.map((m: any) => ({
+        occurred_at: m.moved_at || m.occurred_at || m.created_at || m.inserted_at,
+        trello_action_id: null,
+        card_id: m.card_id || m.card_uuid || m.card_trello_id || null,
+        action_type: m.action_type || 'move',
+        member_id: m.moved_by_member_id || m.member_id || null,
+        member_username: m.member_username || null,
+        member_fullname: m.member_fullname || null,
+        from_list_id: m.from_list_id || m.from_list_uuid || m.from_list_trello_id || null,
+        from_list_name: m.from_list_name || null,
+        to_list_id: m.to_list_id || m.to_list_uuid || m.to_list_trello_id || null,
+        to_list_name: m.to_list_name || null,
+        act_type: m.act_type || null,
+      }))
+      rawRows = [...ceNorm, ...mvNorm].filter((r) => r.card_id && r.occurred_at)
+      rawRows.sort((a, b) => new Date(a.occurred_at).getTime() - new Date(b.occurred_at).getTime())
+    }
     // Mostrar registros do período para TODOS os cards abertos na janela (não apenas os que têm evento no período)
     // e filtrar somente interações de produtividade (criação ou movimentação real entre listas distintas)
     const isValidMove = (r: any) => {

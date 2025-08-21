@@ -116,7 +116,7 @@ export async function GET(request: Request) {
     filters.push(`occurred_at=lte.${encodeURIComponent(to)}`)
     const qs = filters.length ? `&${filters.join('&')}` : ''
     const rows = await fetchAll<MovementRow>(
-      `member_activity?select=occurred_at,card_id,action_type,from_list_name,to_list_name${qs}&action_type=eq.move&order=occurred_at.asc`
+      `member_activity_fast?select=occurred_at,card_id,action_type,from_list_name,to_list_name${qs}&action_type=eq.move&order=occurred_at.asc`
     )
 
     const normalizedRows = rows

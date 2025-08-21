@@ -50,6 +50,11 @@ interface DashboardData {
     list_position: number
     total_created: number
   }>
+  created_entry_summary?: {
+    created_total: number
+    created_touched_entry_triage: number
+    percentage: number
+  }
   breakdown: Array<{
     list_id: string
     list_name: string
@@ -307,6 +312,7 @@ export default function DashboardPage() {
             actTypes={data.act_types}
             createdActTypes={data.created_act_types}
             createdByList={data.created_by_list}
+            createdEntrySummary={data.created_entry_summary}
           />
         </section>
         

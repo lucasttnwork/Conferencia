@@ -75,23 +75,27 @@ async function main() {
 					let res = await fetch(actionsUrl)
 					if (!res.ok) { processed++; return }
 					let acts = await res.json()
-					if (!Array.isArray(acts) || acts.length === 0) {
-						// Fallback: pegar todas as ações e usar a primeira com list/card.idList
+					// Garantir array
+					if (!Array.isArray(acts)) acts = []
+					// Se não houve ações de criação retornadas, buscar todas e filtrar somente as de criação
+					if (acts.length === 0) {
 						const allUrl = `https://api.trello.com/1/cards/${encodeURIComponent(c.trello_id)}/actions?` + qs({ ...baseParams, filter: 'all' })
 						res = await fetch(allUrl)
 						if (!res.ok) { processed++; return }
-						acts = await res.json()
+						const allActs = await res.json()
+						acts = Array.isArray(allActs) ? allActs.filter(a => {
+							const t = a?.type
+							return t === 'createCard' || t === 'copyCard' || t === 'convertToCardFromCheckItem'
+						}) : []
 					}
 					if (!Array.isArray(acts) || acts.length === 0) { processed++; return }
+					// Ordenar pela data asc
 					acts.sort((a, b) => new Date(a?.date || 0) - new Date(b?.date || 0))
-					let first = acts[0]
-					// Se a primeira não tiver lista, procure a primeira que tiver
-					if (!(first?.data?.list?.id || first?.data?.card?.idList)) {
-						const withList = acts.find(a => a?.data?.list?.id || a?.data?.card?.idList)
-						if (withList) first = withList
-					}
-					let listTrelloId = first?.data?.list?.id || first?.data?.card?.idList || null
-					let listName = first?.data?.list?.name || null
+					// Selecionar a primeira AÇÃO DE CRIAÇÃO que contenha lista
+					const firstWithList = acts.find(a => (a?.data?.list?.id || a?.data?.card?.idList))
+					if (!firstWithList) { processed++; return }
+					let listTrelloId = firstWithList?.data?.list?.id || firstWithList?.data?.card?.idList || null
+					let listName = firstWithList?.data?.list?.name || null
 					if (!listTrelloId) { processed++; return }
 
 					// Garantir lista no banco (quando há coluna trello_id)
