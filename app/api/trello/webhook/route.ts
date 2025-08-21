@@ -264,6 +264,8 @@ export async function POST(request: Request) {
     const cardsHasBoardId = await tableHasColumn(supabase, 'cards', 'board_id')
     const cardsHasTrelloId = await tableHasColumn(supabase, 'cards', 'trello_id')
     const listsHasTrelloId = await tableHasColumn(supabase, 'lists', 'trello_id')
+    const cardsHasCreatedListId = await tableHasColumn(supabase, 'cards', 'created_list_id')
+    const cardsHasCreatedListTrelloId = await tableHasColumn(supabase, 'cards', 'created_list_trello_id')
     const boardsHasTrelloId = await tableHasColumn(supabase, 'boards', 'trello_id')
     const membersHasTrelloId = await tableHasColumn(supabase, 'members', 'trello_id')
     const membersHasUsername = await tableHasColumn(supabase, 'members', 'username')
@@ -373,8 +375,33 @@ export async function POST(request: Request) {
     }
 
     if (card?.id) {
+      // Consultar card existente para não sobrescrever created_list_* se já definidos
+      let existingCreatedListId: string | null = null
+      let existingCreatedListTrelloId: string | null = null
+      try {
+        if (cardsHasCreatedListId || cardsHasCreatedListTrelloId) {
+          let selector: Record<string, any> | null = null
+          if (cardsHasTrelloId) selector = { trello_id: card.id }
+          else if (looksLikeUuid(card.id)) selector = { id: card.id }
+          if (selector) {
+            const { data: existing } = await supabase
+              .from('cards')
+              .select('created_list_id, created_list_trello_id')
+              .match(selector as any)
+              .maybeSingle()
+            existingCreatedListId = existing?.created_list_id ?? null
+            existingCreatedListTrelloId = existing?.created_list_trello_id ?? null
+          }
+        }
+      } catch {}
+      const incomingDescription = (typeof card.desc === 'string' ? card.desc : (typeof data?.card?.desc === 'string' ? data.card.desc : null)) || null
       const updateBase: Record<string, any> = {
         name: card.name || null,
+        url: (typeof card.url === 'string' ? card.url : (typeof data?.card?.url === 'string' ? data.card.url : null)) || null,
+        due_at: (card?.due ? new Date(card.due).toISOString() : (data?.card?.due ? new Date(data.card.due).toISOString() : null)) || null,
+      }
+      if (incomingDescription && String(incomingDescription).trim().length > 0) {
+        updateBase.description = incomingDescription
       }
       let onConflictCards = 'id'
       if (cardsHasTrelloId) {
@@ -385,6 +412,12 @@ export async function POST(request: Request) {
       }
       if (eventType === 'create' && listTo?.id) {
         updateBase.current_list_id = listTo.id
+        // Preencher também a lista de criação se existir no schema e ainda não definida
+        if (cardsHasCreatedListTrelloId && !existingCreatedListTrelloId) {
+          ;(updateBase as any).created_list_trello_id = listTo.id
+        } else if (cardsHasCreatedListId && !existingCreatedListId) {
+          ;(updateBase as any).created_list_id = listTo.id
+        }
       }
       if (eventType === 'move' && listTo?.id) {
         updateBase.current_list_id = listTo.id
@@ -420,6 +453,36 @@ export async function POST(request: Request) {
         }
       } catch {}
 
+      // Resolver created_list_id caso tenhamos definido via trello_id como placeholder
+      try {
+        if ((updateBase as any).created_list_id && listsHasTrelloId) {
+          const trelloListIdCreated = (updateBase as any).created_list_id
+          const { data: listRow2 } = await supabase
+            .from('lists')
+            .select('id')
+            .eq('trello_id', trelloListIdCreated)
+            .maybeSingle()
+          if (listRow2?.id) {
+            ;(updateBase as any).created_list_id = listRow2.id
+          }
+        }
+      } catch {}
+
+      // Se criamos created_list_trello_id e a coluna created_list_id existe, também resolvê-la
+      try {
+        if ((updateBase as any).created_list_trello_id && cardsHasCreatedListId && !existingCreatedListId) {
+          const trelloListIdCreated2 = (updateBase as any).created_list_trello_id
+          const { data: listRow3 } = await supabase
+            .from('lists')
+            .select('id')
+            .eq('trello_id', trelloListIdCreated2)
+            .maybeSingle()
+          if (listRow3?.id) {
+            ;(updateBase as any).created_list_id = listRow3.id
+          }
+        }
+      } catch {}
+
       // Tentar incluir board_id resolvido
       // 1) Preferir boardUuidForFk (derivado de boards via trello_id)
       let updatePayload: Record<string, any> = { ...updateBase }
@@ -444,6 +507,20 @@ export async function POST(request: Request) {
           } catch {}
         }
       }
+      // Se for criação de card, tentar definir created_by_member_id a partir do memberCreator
+      if (eventType === 'create' && member?.id) {
+        try {
+          const { data: createdBy } = await supabase
+            .from('members')
+            .select('id')
+            .eq('trello_id', member.id)
+            .maybeSingle()
+          if (createdBy?.id) {
+            updatePayload.created_by_member_id = createdBy.id
+          }
+        } catch {}
+      }
+
       let { error: cardsError } = await supabase.from('cards').upsert([updatePayload], { onConflict: onConflictCards })
       if (cardsError && (cardsHasBoardId || cardsHasTrelloId)) {
         // Fallback: tenta sem board_id, mantendo chave de conflito

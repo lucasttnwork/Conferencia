@@ -63,16 +63,18 @@ export async function GET(request: Request) {
     }
 
     // Se não houver período, mantemos as views agregadas padrão (estado atual do quadro)
-    let listsResponse, actTypesResponse, breakdownResponse, pivotResponse, summaryResponse, totalCardsResponse, openCardsResponse
+    let listsResponse, actTypesResponse, breakdownResponse, pivotResponse, summaryResponse, totalCardsResponse, openCardsResponse, archivedCountResponse
     if (!from || !to) {
-      ;[listsResponse, actTypesResponse, breakdownResponse, pivotResponse, summaryResponse, totalCardsResponse, openCardsResponse] = await Promise.all([
+      ;[listsResponse, actTypesResponse, breakdownResponse, pivotResponse, summaryResponse, totalCardsResponse, openCardsResponse, archivedCountResponse] = await Promise.all([
         fetch(`${SUPABASE_URL}/rest/v1/dashboard_lists?select=*`, commonOptions),
         fetch(`${SUPABASE_URL}/rest/v1/dashboard_act_types?select=*`, commonOptions),
         fetch(`${SUPABASE_URL}/rest/v1/dashboard_list_breakdown?select=*`, commonOptions),
         fetch(`${SUPABASE_URL}/rest/v1/dashboard_list_pivot?select=*`, commonOptions),
         fetch(`${SUPABASE_URL}/rest/v1/dashboard_list_summary?select=*`, commonOptions),
         fetch(`${SUPABASE_URL}/rest/v1/dashboard_total_cards?select=*`, commonOptions),
-        fetch(`${SUPABASE_URL}/rest/v1/open_cards?select=*`, rangeOptions(0, 999999))
+        fetch(`${SUPABASE_URL}/rest/v1/open_cards?select=*`, rangeOptions(0, 999999)),
+        // Apenas para obter a contagem de arquivados atuais (is_closed = true)
+        fetch(`${SUPABASE_URL}/rest/v1/cards?select=id&is_closed=eq.true`, rangeOptions(0, 0))
       ])
     } else {
       // Reconstruir estado de cards com eventos até 'to' e determinar quais existiram no período [from, to]
@@ -89,11 +91,38 @@ export async function GET(request: Request) {
         eventsByCard.get(e.card_id)!.push(e)
       }
 
+      // Buscar listas antecipadamente para usar metadados e IDs alvo (entrada/triagem)
+      const listsRes = await fetch(`${SUPABASE_URL}/rest/v1/lists?select=id,name,pos,closed`, commonOptions)
+      if (!listsRes.ok) throw new Error('Falha ao buscar listas')
+      const listsAll = (await listsRes.json()) as Array<any>
+      const listMetaById = new Map<string, { name: string; pos: number }>()
+      for (const l of listsAll) {
+        listMetaById.set(l.id, { name: l.name, pos: l.pos })
+      }
+      const entryTriageIds = new Set<string>()
+      const DEFAULT_ENTRY_TRIAGE = ['6866abc12d1dd317b1f980b0', '67e44cc54b8865ef73dcaca6']
+      const envEntryTriagRaw = process.env.DASH_ENTRY_TRIAGE_LIST_IDS || DEFAULT_ENTRY_TRIAGE.join(',')
+      const envEntryTriage = envEntryTriagRaw.split(',').map((s) => s.trim()).filter(Boolean)
+      if (envEntryTriage.length > 0) {
+        for (const id of envEntryTriage) entryTriageIds.add(id)
+      } else {
+        // Fallback por nome, apenas para descobrir os IDs uma vez
+        for (const l of listsAll) {
+          const nm = String(l.name || '').toLowerCase()
+          if (nm.includes('entrada') || nm.includes('triagem')) entryTriageIds.add(l.id)
+        }
+      }
+
       const existedCardIds = new Set<string>()
       const openedSet = new Set<string>()
+      const createdEntrySet = new Set<string>()
       const archivedSet = new Set<string>()
+      const concludedSet = new Set<string>()
       const openAtToSet = new Set<string>()
       const listAtTo = new Map<string, { id: string | null; name: string | null }>()
+
+      // Contagem por lista de criação
+      const createdByListCount = new Map<string, { list_id: string; list_name: string; list_position: number; total_created: number }>()
 
       for (const [cardId, evts] of Array.from(eventsByCard.entries())) {
         let openState = false
@@ -102,7 +131,10 @@ export async function GET(request: Request) {
         let currentListName: string | null = null
         let sawBeforeFrom = false
         let openedWithin = false
+        let createdWithin = false
+        let touchedEntryOrTriageWithin = false
         let archivedWithin = false
+        let concludedWithin = false
         for (const e of evts) {
           const at = new Date(e.occurred_at)
           // aplicar mudança de lista primeiro
@@ -118,12 +150,41 @@ export async function GET(request: Request) {
           } else if (e.action_type === 'archive' || e.action_type === 'delete') {
             openState = false
           }
-          if (at <= fromDate) {
+          if (at < fromDate) {
             openAtFrom = openState
             sawBeforeFrom = true
-          } else if (at > fromDate && at <= toDate) {
+          } else if (at >= fromDate && at <= toDate) {
             if (e.action_type === 'create' || e.action_type === 'unarchive') openedWithin = true
-            if (e.action_type === 'archive') archivedWithin = true
+            if (e.action_type === 'create') {
+              createdWithin = true
+              // Agrupar por lista de criação no período
+              const lid = String(e.to_list_id || '')
+              const meta = lid ? listMetaById.get(lid) : null
+              const list_id = lid || `name:${String(e.to_list_name || '—')}`
+              const list_name = meta?.name || e.to_list_name || '—'
+              const list_position = meta?.pos ?? 999999
+              if (!createdByListCount.has(list_id)) createdByListCount.set(list_id, { list_id, list_name, list_position, total_created: 0 })
+              createdByListCount.get(list_id)!.total_created += 1
+            }
+            if ((e.action_type === 'create' || e.action_type === 'move' || e.action_type === 'unarchive') && e.to_list_id) {
+              if (entryTriageIds.has(e.to_list_id)) {
+                touchedEntryOrTriageWithin = true
+              }
+              // Fallback extra por nome (resiliência)
+              if (!touchedEntryOrTriageWithin) {
+                const nm = String(e.to_list_name || '').toLowerCase()
+                if (nm.includes('entrada') || nm.includes('triagem')) touchedEntryOrTriageWithin = true
+              }
+            }
+            // Considera transições que definem is_closed = true no período
+            if (e.action_type === 'archive' || e.action_type === 'delete') archivedWithin = true
+            // Conclusão: entrada na lista "Concluídos" durante o período
+            if (e.action_type === 'create' || e.action_type === 'move' || e.action_type === 'unarchive') {
+              const toNameLc = String(e.to_list_name || '').toLowerCase()
+              if (toNameLc.includes('conclu')) {
+                concludedWithin = true
+              }
+            }
           }
         }
         // Se não havia evento até 'from', aproximação: se primeiro evento é create, não estava aberto em 'from'; senão, estava aberto
@@ -139,7 +200,9 @@ export async function GET(request: Request) {
           existedCardIds.add(cardId)
         }
         if (openedWithin) openedSet.add(cardId)
+        if (createdWithin && touchedEntryOrTriageWithin) createdEntrySet.add(cardId)
         if (archivedWithin) archivedSet.add(cardId)
+        if (concludedWithin) concludedSet.add(cardId)
         if (openAtTo) openAtToSet.add(cardId)
         listAtTo.set(cardId, { id: currentListId, name: currentListName })
       }
@@ -163,14 +226,7 @@ export async function GET(request: Request) {
       const cardsDetails = await fetchCardsByIds(existedIdsArr)
       const cardById = new Map<string, any>(cardsDetails.map((c: any) => [c.id, c]))
 
-      // Buscar listas para obter posições
-      const listsRes = await fetch(`${SUPABASE_URL}/rest/v1/lists?select=id,name,pos,closed`, commonOptions)
-      if (!listsRes.ok) throw new Error('Falha ao buscar listas')
-      const listsAll = (await listsRes.json()) as Array<any>
-      const listMetaById = new Map<string, { name: string; pos: number }>()
-      for (const l of listsAll) {
-        listMetaById.set(l.id, { name: l.name, pos: l.pos })
-      }
+      // Metadados de listas já carregados acima
 
       // Overall
       const overall: any = {
@@ -181,8 +237,12 @@ export async function GET(request: Request) {
         cards_with_value: 0,
         total_value: 0,
         cards_needing_reconference: 0,
-        opened_cards: openedSet.size,
+        // Cards abertos: todos os que estiveram abertos no período e NÃO chegaram à lista Concluídos no período
+        opened_cards: Math.max(0, existedCardIds.size - concludedSet.size),
         archived_cards: archivedSet.size,
+        completed_cards: concludedSet.size,
+        // Em andamento: no fim do período, abertos e que não chegaram em Concluídos no período
+        in_progress_cards: Array.from(openAtToSet).filter((id) => existedCardIds.has(id) && !concludedSet.has(id)).length,
       }
       for (const id of Array.from(existedCardIds)) {
         const c = cardById.get(id)
@@ -222,6 +282,21 @@ export async function GET(request: Request) {
       const actTypes = Array.from(actTypeCount.entries())
         .map(([name, total_count]) => ({ name, total_count, active_cards: 0, total_value: 0 }))
         .sort((a, b) => b.total_count - a.total_count)
+
+      // created_act_types: apenas cards abertos no período (create/unarchive)
+      const createdActTypeCount = new Map<string, number>()
+      for (const id of Array.from(createdEntrySet)) {
+        if (!existedCardIds.has(id)) continue
+        const c = cardById.get(id)
+        const name = c?.act_type || 'Não definido'
+        createdActTypeCount.set(name, (createdActTypeCount.get(name) || 0) + 1)
+      }
+      const createdActTypes = Array.from(createdActTypeCount.entries())
+        .map(([name, total_count]) => ({ name, total_count, active_cards: 0, total_value: 0 }))
+        .sort((a, b) => b.total_count - a.total_count)
+
+      // created_by_list: ordenar por posição para consistência visual (ou por total desc no front)
+      const createdByList = Array.from(createdByListCount.values()).sort((a, b) => a.list_position - b.list_position)
 
       // breakdown por lista e tipo de ato
       const breakdownMap = new Map<string, any>()
@@ -296,15 +371,17 @@ export async function GET(request: Request) {
         overall,
         lists,
         act_types: actTypes,
+        created_act_types: createdActTypes,
+        created_by_list: createdByList,
         breakdown,
         pivot,
         summary,
         open_cards: openCards,
-        _debug: { source_url: SUPABASE_URL, key_tail: SUPABASE_ANON_KEY ? SUPABASE_ANON_KEY.slice(-8) : null, period: { from, to } },
+        _debug: { source_url: SUPABASE_URL, key_tail: SUPABASE_ANON_KEY ? SUPABASE_ANON_KEY.slice(-8) : null, period: { from, to }, entry_triage_ids: Array.from(entryTriageIds) },
       }, { headers: { 'Cache-Control': 'no-store' } })
     }
 
-    if (!listsResponse.ok || !actTypesResponse.ok || !breakdownResponse.ok || !pivotResponse.ok || !summaryResponse.ok || !totalCardsResponse.ok || !openCardsResponse.ok) {
+    if (!listsResponse.ok || !actTypesResponse.ok || !breakdownResponse.ok || !pivotResponse.ok || !summaryResponse.ok || !totalCardsResponse.ok || !openCardsResponse.ok || !archivedCountResponse.ok) {
       throw new Error('Erro ao buscar dados do Supabase')
     }
 
@@ -327,6 +404,26 @@ export async function GET(request: Request) {
       cards_with_value: 0,
       total_value: 0,
       cards_needing_reconference: 0
+    }
+
+    // Adiciona contagem de arquivados atuais (is_closed = true)
+    const contentRange = archivedCountResponse.headers.get('Content-Range') || archivedCountResponse.headers.get('content-range')
+    if (contentRange) {
+      const totalMatch = contentRange.match(/\/(\d+)$/)
+      const totalArchived = totalMatch ? parseInt(totalMatch[1], 10) : 0
+      ;(overall as any).archived_cards = totalArchived
+    } else {
+      ;(overall as any).archived_cards = 0
+    }
+
+    // Adiciona contagem de abertos atuais (is_closed = false)
+    const openContentRange = openCardsResponse.headers.get('Content-Range') || openCardsResponse.headers.get('content-range')
+    if (openContentRange) {
+      const totalMatch = openContentRange.match(/\/(\d+)$/)
+      const totalOpen = totalMatch ? parseInt(totalMatch[1], 10) : (Array.isArray(openCards) ? openCards.length : 0)
+      ;(overall as any).opened_cards = totalOpen
+    } else {
+      ;(overall as any).opened_cards = Array.isArray(openCards) ? openCards.length : 0
     }
 
     return NextResponse.json({

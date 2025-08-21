@@ -134,12 +134,14 @@ CREATE OR REPLACE FUNCTION public.fn_upsert_card(
     p_description TEXT,
     p_url TEXT,
     p_is_closed BOOLEAN,
-    p_due_at TIMESTAMPTZ
+    p_due_at TIMESTAMPTZ,
+    p_created_by_member_trello_id TEXT DEFAULT NULL
 ) RETURNS UUID AS $$
 DECLARE
     v_id UUID;
     v_board_id UUID;
     v_list_id UUID;
+    v_created_by_member_id UUID;
 BEGIN
     SELECT id INTO v_board_id FROM public.boards WHERE trello_id = p_board_trello_id;
     IF v_board_id IS NULL THEN
@@ -156,8 +158,34 @@ BEGIN
         v_list_id := NULL;
     END IF;
 
-    INSERT INTO public.cards(trello_id, board_id, current_list_id, name, description, url, is_closed, due_at)
-    VALUES (p_trello_id, v_board_id, v_list_id, p_name, p_description, p_url, COALESCE(p_is_closed, FALSE), p_due_at)
+    IF p_created_by_member_trello_id IS NOT NULL THEN
+        SELECT id INTO v_created_by_member_id FROM public.members WHERE trello_id = p_created_by_member_trello_id;
+    ELSE
+        v_created_by_member_id := NULL;
+    END IF;
+
+    INSERT INTO public.cards(
+        trello_id,
+        board_id,
+        current_list_id,
+        name,
+        description,
+        url,
+        is_closed,
+        due_at,
+        created_by_member_id
+    )
+    VALUES (
+        p_trello_id,
+        v_board_id,
+        v_list_id,
+        p_name,
+        p_description,
+        p_url,
+        COALESCE(p_is_closed, FALSE),
+        p_due_at,
+        v_created_by_member_id
+    )
     ON CONFLICT (trello_id) DO UPDATE SET
         board_id = EXCLUDED.board_id,
         current_list_id = EXCLUDED.current_list_id,
@@ -166,6 +194,7 @@ BEGIN
         url = EXCLUDED.url,
         is_closed = EXCLUDED.is_closed,
         due_at = EXCLUDED.due_at,
+        created_by_member_id = COALESCE(public.cards.created_by_member_id, EXCLUDED.created_by_member_id),
         updated_at = NOW()
     RETURNING id INTO v_id;
     RETURN v_id;
@@ -261,7 +290,8 @@ BEGIN
     END IF;
 
     UPDATE public.cards
-    SET current_list_id = v_to_list_id, updated_at = NOW()
+    SET current_list_id = v_to_list_id,
+        updated_at = NOW()
     WHERE id = v_card_id;
 
     INSERT INTO public.card_movements(
@@ -322,6 +352,18 @@ BEGIN
         occurred_at = EXCLUDED.occurred_at,
         payload_json = EXCLUDED.payload_json
     RETURNING id INTO v_id;
+
+    -- Se for uma criação e a tabela cards tiver coluna created_by_member_id, tentar preencher quando possível
+    IF p_action_type = 'createCard' AND v_card_id IS NOT NULL AND v_member_id IS NOT NULL THEN
+        BEGIN
+            UPDATE public.cards
+            SET created_by_member_id = COALESCE(created_by_member_id, v_member_id)
+            WHERE id = v_card_id;
+        EXCEPTION WHEN undefined_column THEN
+            -- Ignora se a coluna não existir neste schema
+            NULL;
+        END;
+    END IF;
     RETURN v_id;
 END;
 $$ LANGUAGE plpgsql;

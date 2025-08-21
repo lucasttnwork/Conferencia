@@ -19,7 +19,8 @@
     "backfill:actions": "node --experimental-fetch scripts/backfill-actions.mjs",
     "verify:trello": "node --experimental-fetch scripts/verify-trello-sync.mjs",
     "verify:today": "node --experimental-fetch scripts/verify-today.mjs",
-    "fill:today": "node --experimental-fetch scripts/fill-today.mjs"
+    "fill:today": "node --experimental-fetch scripts/fill-today.mjs",
+    "fill:descriptions": "node --experimental-fetch scripts/fill-card-descriptions-from-trello.mjs"
   },
   "keywords": [
     "trello",
@@ -56,6 +57,7 @@
     "typescript": "^5.0.0"
   },
   "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.3",
     "@types/express": "^5.0.3",
     "eslint": "^8.0.0",
     "eslint-config-next": "^14.0.0",

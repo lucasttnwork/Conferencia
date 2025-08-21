@@ -38,6 +38,18 @@ interface DashboardData {
     active_cards: number
     total_value: number
   }>
+  created_act_types?: Array<{
+    name: string
+    total_count: number
+    active_cards: number
+    total_value: number
+  }>
+  created_by_list?: Array<{
+    list_id: string
+    list_name: string
+    list_position: number
+    total_created: number
+  }>
   breakdown: Array<{
     list_id: string
     list_name: string
@@ -292,6 +304,8 @@ export default function DashboardPage() {
           <VisualDistribution 
             lists={data.lists}
             actTypes={data.act_types}
+            createdActTypes={data.created_act_types}
+            createdByList={data.created_by_list}
           />
         </section>
         

@@ -20,6 +20,7 @@ interface StatsOverviewProps {
     cards_needing_reconference?: number
     opened_cards?: number
     archived_cards?: number
+    completed_cards?: number
   }
 }
 
@@ -65,13 +66,13 @@ export function StatsOverview({ data }: StatsOverviewProps) {
         </div>
       </div>
 
-      {/* Cards arquivados no período */}
+      {/* Cards concluídos no período */}
       <div className="card animate-float neon-glow">
         <div className="flex items-center justify-between p-6">
           <div className="flex-1">
-            <p className="text-orange-300 text-sm font-medium mb-2">Cards arquivados</p>
-            <p className="text-4xl font-bold text-white mb-1">{(data.archived_cards || 0).toLocaleString('pt-BR')}</p>
-            <p className="text-orange-300 text-sm mb-2">Quantidade arquivada no período</p>
+            <p className="text-orange-300 text-sm font-medium mb-2">Cards concluídos</p>
+            <p className="text-4xl font-bold text-white mb-1">{(data.completed_cards || 0).toLocaleString('pt-BR')}</p>
+            <p className="text-orange-300 text-sm mb-2">Chegaram na lista "Concluídos" no período</p>
             <div className="w-full bg-gray-700 rounded-full h-2">
               <div className="bg-gradient-to-r from-orange-500 to-orange-400 h-2 rounded-full animate-pulse-glow"></div>
             </div>
@@ -82,13 +83,13 @@ export function StatsOverview({ data }: StatsOverviewProps) {
         </div>
       </div>
 
-      {/* Valor Total */}
+      {/* Em andamento no fim do período */}
       <div className="card animate-float neon-glow">
         <div className="flex items-center justify-between p-6">
           <div className="flex-1">
-            <p className="text-purple-300 text-sm font-medium mb-2">Valor Total</p>
-            <p className="text-3xl font-bold text-white mb-1">{formatCurrency(data.total_value)}</p>
-            <p className="text-purple-300 text-sm mb-2">{data.cards_with_value} cards com valor</p>
+            <p className="text-purple-300 text-sm font-medium mb-2">Em andamento</p>
+            <p className="text-3xl font-bold text-white mb-1">{(data as any).in_progress_cards?.toLocaleString('pt-BR') || '0'}</p>
+            <p className="text-purple-300 text-sm mb-2">Abertos em "{new Date().getFullYear()}" fim do período e não concluídos</p>
             <div className="w-full bg-gray-700 rounded-full h-2">
               <div className="bg-gradient-to-r from-purple-500 to-purple-400 h-2 rounded-full animate-pulse-glow"></div>
             </div>
