@@ -92,12 +92,23 @@ export async function GET(request: Request) {
       }
 
       // Buscar listas antecipadamente para usar metadados e IDs alvo (entrada/triagem)
-      const listsRes = await fetch(`${SUPABASE_URL}/rest/v1/lists?select=id,name,pos,closed`, commonOptions)
-      if (!listsRes.ok) throw new Error('Falha ao buscar listas')
-      const listsAll = (await listsRes.json()) as Array<any>
-      const listMetaById = new Map<string, { name: string; pos: number }>()
+      // Buscar listas. Tentamos incluir trello_id (quando existir) para mapear created_list_trello_id -> id
+      let listsAll: Array<any> = []
+      {
+        const listsResTry = await fetch(`${SUPABASE_URL}/rest/v1/lists?select=id,trello_id,name,pos,closed`, commonOptions)
+        if (listsResTry.ok) {
+          listsAll = (await listsResTry.json()) as Array<any>
+        } else {
+          const listsResFallback = await fetch(`${SUPABASE_URL}/rest/v1/lists?select=id,name,pos,closed`, commonOptions)
+          if (!listsResFallback.ok) throw new Error('Falha ao buscar listas')
+          listsAll = (await listsResFallback.json()) as Array<any>
+        }
+      }
+      const listMetaById = new Map<string, { name: string; pos: number; trello_id?: string | null }>()
+      const listIdByTrelloId = new Map<string, string>()
       for (const l of listsAll) {
-        listMetaById.set(l.id, { name: l.name, pos: l.pos })
+        listMetaById.set(l.id, { name: l.name, pos: l.pos, trello_id: l.trello_id ?? null })
+        if (l.trello_id) listIdByTrelloId.set(String(l.trello_id), String(l.id))
       }
       const entryTriageIds = new Set<string>()
       const DEFAULT_ENTRY_TRIAGE = ['6866abc12d1dd317b1f980b0', '67e44cc54b8865ef73dcaca6']
@@ -115,14 +126,15 @@ export async function GET(request: Request) {
 
       const existedCardIds = new Set<string>()
       const openedSet = new Set<string>()
+      // Conjunto de cards criados no período (independente da lista)
+      const createdSet = new Set<string>()
+      // Mantemos o conjunto de "tocou Entrada/Triagem" apenas para análises específicas
       const createdEntrySet = new Set<string>()
       const archivedSet = new Set<string>()
       const concludedSet = new Set<string>()
       const openAtToSet = new Set<string>()
       const listAtTo = new Map<string, { id: string | null; name: string | null }>()
-
-      // Contagem por lista de criação
-      const createdByListCount = new Map<string, { list_id: string; list_name: string; list_position: number; total_created: number }>()
+      const createdListByCardFromEvents = new Map<string, { id: string | null; name: string | null }>()
 
       for (const [cardId, evts] of Array.from(eventsByCard.entries())) {
         let openState = false
@@ -138,14 +150,15 @@ export async function GET(request: Request) {
         for (const e of evts) {
           const at = new Date(e.occurred_at)
           // aplicar mudança de lista primeiro
-          if (e.action_type === 'create' || e.action_type === 'move' || e.action_type === 'unarchive') {
+          const isCreateEvent = (e.action_type === 'create' || e.action_type === 'createCard' || e.action_type === 'copyCard' || e.action_type === 'convertToCardFromCheckItem')
+          if (isCreateEvent || e.action_type === 'move' || e.action_type === 'unarchive') {
             if (e.to_list_id) {
               currentListId = e.to_list_id
               currentListName = e.to_list_name
             }
           }
           // aplicar estado de aberto/fechado
-          if (e.action_type === 'create' || e.action_type === 'unarchive') {
+          if (isCreateEvent || e.action_type === 'unarchive') {
             openState = true
           } else if (e.action_type === 'archive' || e.action_type === 'delete') {
             openState = false
@@ -154,19 +167,15 @@ export async function GET(request: Request) {
             openAtFrom = openState
             sawBeforeFrom = true
           } else if (at >= fromDate && at <= toDate) {
-            if (e.action_type === 'create' || e.action_type === 'unarchive') openedWithin = true
-            if (e.action_type === 'create') {
+            if (isCreateEvent || e.action_type === 'unarchive') openedWithin = true
+            if (isCreateEvent) {
               createdWithin = true
-              // Agrupar por lista de criação no período
-              const lid = String(e.to_list_id || '')
-              const meta = lid ? listMetaById.get(lid) : null
-              const list_id = lid || `name:${String(e.to_list_name || '—')}`
-              const list_name = meta?.name || e.to_list_name || '—'
-              const list_position = meta?.pos ?? 999999
-              if (!createdByListCount.has(list_id)) createdByListCount.set(list_id, { list_id, list_name, list_position, total_created: 0 })
-              createdByListCount.get(list_id)!.total_created += 1
+              createdSet.add(cardId)
+              if (!createdListByCardFromEvents.has(cardId)) {
+                createdListByCardFromEvents.set(cardId, { id: e.to_list_id || null, name: e.to_list_name || null })
+              }
             }
-            if ((e.action_type === 'create' || e.action_type === 'move' || e.action_type === 'unarchive') && e.to_list_id) {
+            if ((isCreateEvent || e.action_type === 'move' || e.action_type === 'unarchive') && e.to_list_id) {
               if (entryTriageIds.has(e.to_list_id)) {
                 touchedEntryOrTriageWithin = true
               }
@@ -179,7 +188,7 @@ export async function GET(request: Request) {
             // Considera transições que definem is_closed = true no período
             if (e.action_type === 'archive' || e.action_type === 'delete') archivedWithin = true
             // Conclusão: entrada na lista "Concluídos" durante o período
-            if (e.action_type === 'create' || e.action_type === 'move' || e.action_type === 'unarchive') {
+            if (isCreateEvent || e.action_type === 'move' || e.action_type === 'unarchive') {
               const toNameLc = String(e.to_list_name || '').toLowerCase()
               if (toNameLc.includes('conclu')) {
                 concludedWithin = true
@@ -208,14 +217,16 @@ export async function GET(request: Request) {
       }
 
       // Buscar detalhes dos cards que existiram no período
-      const fetchCardsByIds = async (ids: string[]): Promise<Array<any>> => {
+      const fetchCardsByIds = async (ids: string[], includeCreatedCols: boolean): Promise<Array<any>> => {
         if (ids.length === 0) return []
         const chunkSize = 200
         const results: any[] = []
         for (let i = 0; i < ids.length; i += chunkSize) {
           const chunk = ids.slice(i, i + chunkSize)
           const inList = `(${chunk.map((id) => `"${id}"`).join(',')})`
-          const res = await fetch(`${SUPABASE_URL}/rest/v1/cards?select=id,name,act_type,act_value,clerk_name,current_list_id,is_closed&id=in.${encodeURIComponent(inList)}`, commonOptions)
+          const base = 'id,name,act_type,act_value,clerk_name,current_list_id,is_closed'
+          const select = includeCreatedCols ? `${base},created_list_id,created_list_trello_id` : base
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/cards?select=${select}&id=in.${encodeURIComponent(inList)}`, commonOptions)
           if (!res.ok) throw new Error('Falha ao buscar detalhes dos cards')
           results.push(...(await res.json()))
         }
@@ -223,7 +234,14 @@ export async function GET(request: Request) {
       }
 
       const existedIdsArr = Array.from(existedCardIds)
-      const cardsDetails = await fetchCardsByIds(existedIdsArr)
+      let cardsDetails: any[] = []
+      let createdColsAvailable = true
+      try {
+        cardsDetails = await fetchCardsByIds(existedIdsArr, true)
+      } catch (e) {
+        createdColsAvailable = false
+        cardsDetails = await fetchCardsByIds(existedIdsArr, false)
+      }
       const cardById = new Map<string, any>(cardsDetails.map((c: any) => [c.id, c]))
 
       // Metadados de listas já carregados acima
@@ -283,9 +301,9 @@ export async function GET(request: Request) {
         .map(([name, total_count]) => ({ name, total_count, active_cards: 0, total_value: 0 }))
         .sort((a, b) => b.total_count - a.total_count)
 
-      // created_act_types: apenas cards abertos no período (create/unarchive)
+      // created_act_types: cards criados no período (baseado em eventos 'create')
       const createdActTypeCount = new Map<string, number>()
-      for (const id of Array.from(createdEntrySet)) {
+      for (const id of Array.from(createdSet)) {
         if (!existedCardIds.has(id)) continue
         const c = cardById.get(id)
         const name = c?.act_type || 'Não definido'
@@ -295,7 +313,48 @@ export async function GET(request: Request) {
         .map(([name, total_count]) => ({ name, total_count, active_cards: 0, total_value: 0 }))
         .sort((a, b) => b.total_count - a.total_count)
 
-      // created_by_list: ordenar por posição para consistência visual (ou por total desc no front)
+      // created_by_list: distribuição por lista de criação (preferir created_list_*; fallback ao evento 'create')
+      const createdByListCount = new Map<string, { list_id: string; list_name: string; list_position: number; total_created: number }>()
+      if (createdColsAvailable) {
+        for (const id of Array.from(createdSet)) {
+          if (!existedCardIds.has(id)) continue
+          const c = cardById.get(id)
+          if (!c) continue
+          let listId: string | null = c.created_list_id || null
+          if (!listId && c.created_list_trello_id) {
+            const mapped = listIdByTrelloId.get(String(c.created_list_trello_id))
+            if (mapped) listId = mapped
+          }
+          const meta = listId ? listMetaById.get(listId) : null
+          const effectiveListId = listId || `name:${String(meta?.name || '—')}`
+          const listName = meta?.name || '—'
+          const listPosition = meta?.pos ?? 999999
+          if (!createdByListCount.has(effectiveListId)) {
+            createdByListCount.set(effectiveListId, { list_id: effectiveListId, list_name: listName, list_position: listPosition, total_created: 0 })
+          }
+          createdByListCount.get(effectiveListId)!.total_created += 1
+        }
+      } else {
+        for (const id of Array.from(createdSet)) {
+          if (!existedCardIds.has(id)) continue
+          const info = createdListByCardFromEvents.get(id)
+          const toListId = info?.id || null
+          const toListName = info?.name || null
+          let listId: string | null = null
+          if (toListId) {
+            if (listMetaById.has(toListId)) listId = toListId
+            if (!listId) listId = listIdByTrelloId.get(String(toListId)) || null
+          }
+          const meta = listId ? listMetaById.get(listId) : null
+          const effectiveListId = listId || `name:${String(toListName || meta?.name || '—')}`
+          const listName = meta?.name || toListName || '—'
+          const listPosition = meta?.pos ?? 999999
+          if (!createdByListCount.has(effectiveListId)) {
+            createdByListCount.set(effectiveListId, { list_id: effectiveListId, list_name: listName, list_position: listPosition, total_created: 0 })
+          }
+          createdByListCount.get(effectiveListId)!.total_created += 1
+        }
+      }
       const createdByList = Array.from(createdByListCount.values()).sort((a, b) => a.list_position - b.list_position)
 
       // breakdown por lista e tipo de ato

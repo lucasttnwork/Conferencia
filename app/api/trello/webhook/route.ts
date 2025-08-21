@@ -205,6 +205,20 @@ export async function POST(request: Request) {
     if (actionType === 'createCard') {
       eventType = 'create'
       listTo = data.list || null
+    } else if (actionType === 'copyCard') {
+      // Criação lógica: cards criados a partir de modelos/cópias
+      eventType = 'create'
+      listTo = data.list || null
+      if (!listTo && typeof data?.card?.idList === 'string') {
+        listTo = { id: data.card.idList }
+      }
+    } else if (actionType === 'convertToCardFromCheckItem') {
+      // Criação lógica: cards convertidos de checklist
+      eventType = 'create'
+      listTo = data.list || null
+      if (!listTo && typeof data?.card?.idList === 'string') {
+        listTo = { id: data.card.idList }
+      }
     } else if (actionType === 'updateCard' && data?.listBefore && data?.listAfter) {
       eventType = 'move'
       listFrom = data.listBefore

@@ -255,6 +255,7 @@ export default function ProdutividadePage() {
         pages={[
           { href: '/', label: 'Visão Geral' },
           { href: '/produtividade', label: 'Produtividade' },
+          { href: '/encaminhamentos', label: 'Encaminhamentos' },
         ]}
         items={[
           { href: '#overview', label: 'Resumo por Membro', icon: <Users className="w-4 h-4 text-blue-400" /> },

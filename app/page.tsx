@@ -272,6 +272,7 @@ export default function DashboardPage() {
         pages={[
           { href: '/', label: 'Visão Geral' },
           { href: '/produtividade', label: 'Produtividade' },
+          { href: '/encaminhamentos', label: 'Encaminhamentos' },
         ]}
         items={[
           { href: '#overview', label: 'Visão Geral', icon: <Gauge className="w-4 h-4 text-blue-400" /> },
