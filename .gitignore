@@ -82,3 +82,8 @@ tunnel_url.txt
 tunnel_log.txt
 .cursor/mcp.json
 /.cursor/
+# Gemini Architecture
+.tmp/
+credentials.json
+token.json
+__pycache__/

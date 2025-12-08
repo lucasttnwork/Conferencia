@@ -12,6 +12,7 @@ import { LoadingSpinner } from '@/components/loading-spinner'
 import { OpenCardsTable } from '@/components/open-cards-table'
 import { SectionNav } from '@/components/section-nav'
 import { Gauge, LayoutList, Layers3, Table2, ListChecks, Lightbulb } from 'lucide-react'
+import { LoginScreen } from '@/components/login-screen'
 
 interface DashboardData {
   overall: {
@@ -119,17 +120,19 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [isAuthChecking, setIsAuthChecking] = useState(true)
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true)
       setError(null)
-      
+
       const response = await fetch('/api/dashboard')
       if (!response.ok) {
         throw new Error('Erro ao buscar dados do dashboard')
       }
-      
+
       const result = await response.json()
       setData(result)
       setLastUpdated(new Date())
@@ -169,6 +172,36 @@ export default function DashboardPage() {
     }
   }, [])
 
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = localStorage.getItem('dashboard_auth_token')
+      if (token === 'conf_2024_secure_access') {
+        setIsAuthenticated(true)
+      }
+      setIsAuthChecking(false)
+    }
+    checkAuth()
+  }, [])
+
+  const handleLogin = (success: boolean) => {
+    if (success) {
+      localStorage.setItem('dashboard_auth_token', 'conf_2024_secure_access')
+      setIsAuthenticated(true)
+    }
+  }
+
+  if (isAuthChecking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+        <LoadingSpinner />
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return <LoginScreen onLogin={handleLogin} />
+  }
+
   if (loading && !data) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
@@ -200,7 +233,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen p-4 lg:p-6 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-      <DashboardHeader 
+      <DashboardHeader
         lastUpdated={lastUpdated}
         onRefresh={fetchDashboardData}
       />
@@ -216,34 +249,34 @@ export default function DashboardPage() {
           { href: '#open-cards', label: 'Cards Abertos', icon: <ListChecks className="w-4 h-4 text-pink-400" /> },
         ]}
       />
-      
+
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Visão Geral Compacta */}
         <section id="overview" className="scroll-mt-28">
           <StatsOverview data={data.overall} />
         </section>
-        
+
         {/* Distribuição Visual */}
         <section id="distribution" className="scroll-mt-28">
-          <VisualDistribution 
+          <VisualDistribution
             lists={data.lists}
             actTypes={data.act_types}
           />
         </section>
-        
+
         {/* Insights Rápidos */}
         <section id="insights" className="scroll-mt-28">
-          <QuickInsights 
+          <QuickInsights
             breakdown={data.breakdown}
             actTypes={data.act_types}
           />
         </section>
-        
+
         {/* NOVA VISÃO: Tabela Pivot - Uma linha por lista */}
         <section id="pivot" className="scroll-mt-28">
           <ListPivotTable data={data.pivot} />
         </section>
-        
+
         {/* Visão detalhada (opcional) */}
         <section id="breakdown" className="scroll-mt-28">
           <ListBreakdownTable breakdown={data.breakdown} />
