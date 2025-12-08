@@ -1,16 +1,22 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Calendar, AlertCircle, CheckCircle2, Loader2, FileText, Hash, Clock, AlignLeft, Send, ChevronDown } from 'lucide-react';
+import { Calendar, AlertCircle, CheckCircle2, Loader2, FileText, Hash, Clock, AlignLeft, Send, ChevronDown, User, Users } from 'lucide-react';
 
-export function TrelloForm() {
+interface TrelloFormProps {
+    listType?: 'conferencia' | 'impressao';
+}
+
+export function TrelloForm({ listType = 'conferencia' }: TrelloFormProps) {
     const [actTypes, setActTypes] = useState<string[]>([]);
     const [loadingTypes, setLoadingTypes] = useState(true);
     const [formData, setFormData] = useState({
         tipoAto: '',
         protocolo: '',
         dataEntrega: '',
-        extras: ''
+        extras: '',
+        escrevente: '',
+        equipe: ''
     });
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [errorMessage, setErrorMessage] = useState('');
@@ -34,9 +40,16 @@ export function TrelloForm() {
     }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        let value = e.target.value;
+
+        // Validation for numbers only on Protocol field
+        if (e.target.name === 'protocolo') {
+            value = value.replace(/\D/g, '');
+        }
+
         setFormData({
             ...formData,
-            [e.target.name]: e.target.value
+            [e.target.name]: value
         });
     };
 
@@ -51,7 +64,7 @@ export function TrelloForm() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({ ...formData, listType }),
             });
 
             const data = await response.json();
@@ -66,7 +79,9 @@ export function TrelloForm() {
                 tipoAto: '',
                 protocolo: '',
                 dataEntrega: '',
-                extras: ''
+                extras: '',
+                escrevente: '',
+                equipe: ''
             });
 
         } catch (error: any) {
@@ -150,6 +165,49 @@ export function TrelloForm() {
                             </select>
                             <div className="absolute right-4 top-4 pointer-events-none text-gray-500">
                                 {loadingTypes ? <Loader2 className="w-4 h-4 animate-spin" /> : <ChevronDown className="w-4 h-4" />}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label htmlFor="escrevente" className="text-sm font-medium text-gray-300 ml-1">
+                                Nome do Escrevente
+                            </label>
+                            <div className="relative group">
+                                <span className="absolute left-4 top-3.5 text-gray-500">
+                                    <User className="w-4 h-4" />
+                                </span>
+                                <input
+                                    type="text"
+                                    id="escrevente"
+                                    name="escrevente"
+                                    required
+                                    className="w-full pl-10 pr-4 py-3 bg-[#0A192F]/50 border border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all outline-none text-gray-200 placeholder:text-gray-600"
+                                    placeholder="Seu nome"
+                                    value={formData.escrevente}
+                                    onChange={handleChange}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label htmlFor="equipe" className="text-sm font-medium text-gray-300 ml-1">
+                                Nome da Equipe <span className="text-gray-500 font-normal text-xs">(Opcional)</span>
+                            </label>
+                            <div className="relative group">
+                                <span className="absolute left-4 top-3.5 text-gray-500">
+                                    <Users className="w-4 h-4" />
+                                </span>
+                                <input
+                                    type="text"
+                                    id="equipe"
+                                    name="equipe"
+                                    className="w-full pl-10 pr-4 py-3 bg-[#0A192F]/50 border border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all outline-none text-gray-200 placeholder:text-gray-600"
+                                    placeholder="Nome da equipe"
+                                    value={formData.equipe}
+                                    onChange={handleChange}
+                                />
                             </div>
                         </div>
                     </div>
