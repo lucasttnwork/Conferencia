@@ -10,41 +10,25 @@ const TRELLO_IMPRESSAO_LIST_ID = process.env.TRELLO_IMPRESSAO_LIST_ID;
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { tipoAto, protocolo, dataEntrega, extras, escrevente, equipe, listType } = body;
+        const { tipoAto, protocolo, extras, escrevente, equipe, listType } = body;
 
         // 1. Validation
-        if (!tipoAto || !protocolo || !dataEntrega || !escrevente) {
+        if (!tipoAto || !protocolo || !escrevente) {
             return NextResponse.json(
                 { error: 'Campos obrigatórios faltando.' },
                 { status: 400 }
             );
         }
 
-        const deliveryDate = new Date(dataEntrega);
-        // Normalize to midnight
-        deliveryDate.setUTCHours(0, 0, 0, 0);
-
-        const now = new Date();
-        const minDate = new Date();
-        minDate.setDate(now.getDate() + 2);
-        minDate.setUTCHours(0, 0, 0, 0);
-
-        // Remove time components for pure date comparison
-        const deliveryTime = deliveryDate.getTime();
-        const minTime = minDate.getTime();
-
-        if (deliveryTime < minTime) {
-            return NextResponse.json(
-                { error: 'A data de entrega deve ser de no mínimo 48 horas (2 dias) a partir de hoje.' },
-                { status: 400 }
-            );
-        }
-
         // 2. Formatting
+        const createdAt = new Date();
+        const createdAtLocalized = createdAt.toLocaleString('pt-BR', {
+            timeZone: 'America/Sao_Paulo'
+        });
         const cardName = `📌 ${tipoAto} – Protocolo ${protocolo}`;
         const description = `[${escrevente}] - Equipe: [${equipe || 'N/A'}]
 
-Data para Entrega: ${deliveryDate.toLocaleString('pt-BR')}
+Criado automaticamente em: ${createdAtLocalized}
     
 Informações Extras:
 ${extras || 'Nenhuma'}`;
@@ -63,7 +47,7 @@ ${extras || 'Nenhuma'}`;
         }
 
         // 3. Trello API Call
-        const url = `https://api.trello.com/1/cards?idList=${targetListId}&key=${TRELLO_API_KEY}&token=${TRELLO_API_TOKEN}&name=${encodeURIComponent(cardName)}&desc=${encodeURIComponent(description)}&pos=bottom&due=${encodeURIComponent(deliveryDate.toISOString())}`;
+        const url = `https://api.trello.com/1/cards?idList=${targetListId}&key=${TRELLO_API_KEY}&token=${TRELLO_API_TOKEN}&name=${encodeURIComponent(cardName)}&desc=${encodeURIComponent(description)}&pos=bottom`;
 
         const response = await fetch(url, {
             method: 'POST',

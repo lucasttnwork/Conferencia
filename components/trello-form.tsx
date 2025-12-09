@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Calendar, AlertCircle, CheckCircle2, Loader2, FileText, Hash, Clock, AlignLeft, Send, ChevronDown, User, Users } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Loader2, FileText, Hash, AlignLeft, Send, ChevronDown, User, Users } from 'lucide-react';
 
 interface TrelloFormProps {
     listType?: 'conferencia' | 'impressao';
@@ -13,7 +13,6 @@ export function TrelloForm({ listType = 'conferencia' }: TrelloFormProps) {
     const [formData, setFormData] = useState({
         tipoAto: '',
         protocolo: '',
-        dataEntrega: '',
         extras: '',
         escrevente: '',
         equipe: ''
@@ -78,7 +77,6 @@ export function TrelloForm({ listType = 'conferencia' }: TrelloFormProps) {
             setFormData({
                 tipoAto: '',
                 protocolo: '',
-                dataEntrega: '',
                 extras: '',
                 escrevente: '',
                 equipe: ''
@@ -93,12 +91,6 @@ export function TrelloForm({ listType = 'conferencia' }: TrelloFormProps) {
     const handleReset = () => {
         setStatus('idle');
     }
-
-    const calculateMinDate = () => {
-        const now = new Date();
-        now.setDate(now.getDate() + 2);
-        return now.toISOString().slice(0, 10);
-    };
 
     if (status === 'success') {
         return (
@@ -212,52 +204,24 @@ export function TrelloForm({ listType = 'conferencia' }: TrelloFormProps) {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <label htmlFor="protocolo" className="text-sm font-medium text-gray-300 ml-1">
-                                Número de Protocolo
-                            </label>
-                            <div className="relative group">
-                                <span className="absolute left-4 top-3.5 text-gray-500">
-                                    <Hash className="w-4 h-4" />
-                                </span>
-                                <input
-                                    type="text"
-                                    id="protocolo"
-                                    name="protocolo"
-                                    required
-                                    className="w-full pl-10 pr-4 py-3 bg-[#0A192F]/50 border border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all outline-none text-gray-200 placeholder:text-gray-600"
-                                    placeholder="000000"
-                                    value={formData.protocolo}
-                                    onChange={handleChange}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <label htmlFor="dataEntrega" className="text-sm font-medium text-gray-300 ml-1">
-                                Data para Entrega
-                            </label>
-                            <div className="relative group cursor-pointer">
-                                <span className="absolute left-4 top-3.5 text-gray-500 pointer-events-none z-10">
-                                    <Calendar className="w-4 h-4" />
-                                </span>
-                                <input
-                                    type="date"
-                                    id="dataEntrega"
-                                    name="dataEntrega"
-                                    required
-                                    min={calculateMinDate()}
-                                    className="w-full pl-10 pr-4 py-3 bg-[#1E293B]/60 backdrop-blur-md border border-gray-700/50 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all outline-none text-gray-200 [color-scheme:dark] hover:bg-[#1E293B]/80 shadow-lg cursor-pointer relative z-0"
-                                    value={formData.dataEntrega}
-                                    onChange={handleChange}
-                                    onClick={(e) => (e.target as HTMLInputElement).showPicker()}
-                                />
-                            </div>
-                            <p className="text-xs text-blue-400/80 flex items-center gap-1.5 ml-1 mt-1.5">
-                                <Clock className="w-3 h-3" />
-                                Mínimo de 48h (2 dias) de prazo
-                            </p>
+                    <div className="space-y-2">
+                        <label htmlFor="protocolo" className="text-sm font-medium text-gray-300 ml-1">
+                            Número de Protocolo
+                        </label>
+                        <div className="relative group">
+                            <span className="absolute left-4 top-3.5 text-gray-500">
+                                <Hash className="w-4 h-4" />
+                            </span>
+                            <input
+                                type="text"
+                                id="protocolo"
+                                name="protocolo"
+                                required
+                                className="w-full pl-10 pr-4 py-3 bg-[#0A192F]/50 border border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all outline-none text-gray-200 placeholder:text-gray-600"
+                                placeholder="000000"
+                                value={formData.protocolo}
+                                onChange={handleChange}
+                            />
                         </div>
                     </div>
 
