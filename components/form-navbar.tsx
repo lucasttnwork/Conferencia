@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FileText, Printer } from 'lucide-react';
+import { FileText, Printer, History } from 'lucide-react';
 
 export function FormNavbar() {
     const pathname = usePathname();
@@ -39,6 +39,17 @@ export function FormNavbar() {
                         >
                             <Printer className="w-4 h-4" />
                             <span className="hidden sm:block">Impressão</span>
+                        </Link>
+
+                        <Link
+                            href="/solicitacao-acompanhamento"
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${pathname === '/solicitacao-acompanhamento'
+                                    ? 'bg-indigo-500/10 text-indigo-300 ring-1 ring-indigo-500/20'
+                                    : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'
+                                }`}
+                        >
+                            <History className="w-4 h-4" />
+                            <span className="hidden sm:block">Acompanhamento</span>
                         </Link>
                     </div>
                 </div>
