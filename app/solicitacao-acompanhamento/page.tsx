@@ -107,7 +107,7 @@ export default function SolicitacaoAcompanhamentoPage() {
             const res = await fetch(`/api/trello/card-movements?cardId=${card.id}`);
             const data: CardDetailsResponse | { error?: string } = await res.json();
 
-            if (!res.ok) {
+            if (!res.ok || !('card' in data) || !('timeline' in data)) {
                 throw new Error((data as any)?.error || 'Falha ao buscar timeline.');
             }
 
